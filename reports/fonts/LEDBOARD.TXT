@@ -1,0 +1,11 @@
+
+'LED BOARD' and 'LED BOARD REVERSED' were created when I was working on a web graphic -- an became frustrated trying to create a scoreboard by hand and got sick of pasting layers of dots so I made this font. It will only do CAPs, but the font is mapped to respond to lower case as well. Most common American English punctuations are included
+
+Send me an email if you like this font, have suggestions or use it on a web page (send the URL, I'd like to see it in action :).
+
+Free for personal use only. 
+
+For commercial use / profit, please direct all inquiries to phustava@inlink.com
+
+Paul Hustava
+phustava@inlink.com
