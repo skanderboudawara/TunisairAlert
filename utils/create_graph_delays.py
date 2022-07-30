@@ -40,48 +40,51 @@ def create_plot_arr_delay_cumulated():
     df["DEPARTURE_DELAY"] = pd.to_numeric(df["DEPARTURE_DELAY"])
     df["ARRIVAL_DELAY"] = pd.to_numeric(df["ARRIVAL_DELAY"])
 
-    # Creating the pivot table
-    df_arr_delay = df[["ARRIVAL_DELAY", "ARRIVAL_HOUR", "FLIGHT_STATUS"]]
-    df_arr_delay = df_arr_delay.pivot_table(values='ARRIVAL_DELAY', index='ARRIVAL_HOUR',
-                                            columns='FLIGHT_STATUS', aggfunc='sum')
-    # Creating the figures
-    fig, ax = plt.subplots(facecolor='black', figsize=(1200/96, 200/96))
-    df_arr_delay.plot(kind='bar',
-                      ax=ax,
-                      stacked=True,
-                      rot=0,
-                      # https://matplotlib.org/stable/gallery/color/named_colors.html
-                      color={'scheduled': 'orange',
-                             'cancelled': 'lightcoral',
-                             'active': 'skyblue',
-                             'landed': 'white'}
+    def create_plot(type_flight):
+        # Creating the pivot table
+        df_ftype_delay = df[[f"{type_flight}_DELAY",
+                           f"{type_flight}_HOUR", "FLIGHT_STATUS"]]
+        df_ftype_delay = df_ftype_delay.pivot_table(values=f'{type_flight}_DELAY',
+                                                index=f'{type_flight}_HOUR',
+                                                columns='FLIGHT_STATUS', aggfunc='sum')
+        # Creating the figures
+        fig, ax = plt.subplots(
+            facecolor='black', figsize=((1080/2)/96, 200/96))
+        df_ftype_delay.plot(kind='bar',
+                          ax=ax,
+                          stacked=True,
+                          # https://matplotlib.org/stable/gallery/color/named_colors.html
+                          color={'scheduled': 'orange',
+                                 'cancelled': 'lightcoral',
+                                 'active': 'skyblue',
+                                 'landed': 'white'}
 
-                      )
-    # Adjusting the metadata
-    ax.set_facecolor('black')
-    ax.set_title('Cumulated arrival delays', fontproperties=prop, y=1.2)
-    ax.title.set_fontsize(20)
-    ax.title.set_color('orange')
+                          )
+        # Adjusting the metadata
+        ax.set_facecolor('black')
+        ax.set_title(f'Cumulated {type_flight} delays', fontproperties=prop, y=1.2)
+        ax.title.set_fontsize(18)
+        ax.title.set_color('orange')
 
-    ax.legend(loc='upper center',  bbox_to_anchor=(0.5, 1.25),
-              ncol=3, prop=prop, facecolor='black', labelcolor='white', edgecolor='black', handlelength=0.7)
-    ax.spines['bottom'].set_color('white')
-    ax.spines['left'].set_color('white')
-    ax.xaxis.label.set_color('white')
-    ax.yaxis.label.set_color('white')
-    ax.set_xlabel(None)
-    ax.tick_params(axis='y', colors='white')
-    ax.tick_params(axis='x', colors='white')
+        ax.legend(loc='upper center',  bbox_to_anchor=(0.5, 1.25),
+                  ncol=3, prop=prop, facecolor='black', labelcolor='white', edgecolor='black', handlelength=0.7)
+        ax.spines['bottom'].set_color('white')
+        ax.spines['left'].set_color('white')
+        ax.xaxis.label.set_color('white')
+        ax.yaxis.label.set_color('white')
+        ax.set_xlabel(None)
+        ax.tick_params(axis='y', colors='white')
+        ax.tick_params(axis='x', colors='white')
 
-    # Check the directory if it exists
-    directory_report_monthly = f'reports/{current_time.strftime("%m")}'
-    path_report_save = os.path.join(
-        os.path.abspath(os.curdir), directory_report_monthly)
-    if not (os.path.isdir(path_report_save)):
-        os.mkdir(path_report_save)
+        # Check the directory if it exists
+        directory_report_monthly = f'reports/{current_time.strftime("%m")}'
+        path_report_save = os.path.join(
+            os.path.abspath(os.curdir), directory_report_monthly)
+        if not (os.path.isdir(path_report_save)):
+            os.mkdir(path_report_save)
 
-    # Save picture and return its path
-    picture_to_save = f'{path_report_save}/{current_time.strftime("%d_%m_%Y")}_arr_delayreport.png'
-    fig.savefig(picture_to_save, bbox_inches='tight')
-    return picture_to_save
-
+        # Save picture and return its path
+        picture_to_save = f'{path_report_save}/{current_time.strftime("%d_%m_%Y")}_{type_flight[:3]}_delayreport.png'
+        fig.savefig(picture_to_save, bbox_inches='tight')
+        return picture_to_save
+    return create_plot('ARRIVAL'), create_plot('DEPARTURE')

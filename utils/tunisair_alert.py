@@ -19,9 +19,6 @@ from pyairports.airports import Airports
 tz = "Africa/Tunis"
 # https://airlabs.co
 
-# To get Airlabs token stored in token.txt
-with open('token.txt') as f:
-    _token = f.readlines()[0]
 
 
 def get_flight(type_flight, force_upade=False):
@@ -38,7 +35,12 @@ def get_flight(type_flight, force_upade=False):
 
     The main goal is to have 1 file / day / Month 
     '''
-
+    # To get Airlabs token stored in token.txt
+    with open('token.txt') as f:
+        _token = f.readlines()[0]
+    if _token == '' | _token is None:
+        print('You need to register to airlabs.co and put the token in the token.txt file')
+        return 
     # File and dir checking
     # current_time = (datetime.now()- timedelta(days=1)).astimezone(pytz.timezone(tz)) # To be used for yesterday
     current_time = datetime.now().astimezone(pytz.timezone(tz))
@@ -65,8 +67,10 @@ def get_flight(type_flight, force_upade=False):
                 json.dump(response.json(), f)
             json_flight = response.json()
 
-    if json_flight == {}:
-        return
+    if (json_flight == {} )| (~('response' in json_flight)) | json_flight is None:
+        print('You need to register to airlabs.co and put the token in the token.txt file')
+        print('be careful you may have reached your limit free plan Airlabs API requests')
+        return 
 
     # Get the response data
     real_time_flights = json_flight['response']

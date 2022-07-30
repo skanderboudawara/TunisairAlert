@@ -187,10 +187,15 @@ def create_daily_png_report():
         Report.text((position_relative, 380), text_worse , font=ImageFont.truetype(path_skyfont, 25), fill='white')      
 
     #  Add pandas plot of Cumulated arrival delays
-    plot_path_arrival_png = create_plot_arr_delay_cumulated()
+    plot_path_arrival_png, plot_path_departure_png = create_plot_arr_delay_cumulated()
+    with Image.open(plot_path_departure_png) as departure_delay_pic:
+        report_img.paste(departure_delay_pic, (15, 425))
+    os.remove(plot_path_departure_png)
+    
     with Image.open(plot_path_arrival_png) as arrival_delay_pic:
-        report_img.paste(arrival_delay_pic, (15, 425))
+        report_img.paste(arrival_delay_pic, (555, 425))
     os.remove(plot_path_arrival_png)
+    
     report_img.save(picture_to_save)
     return picture_to_save
 
