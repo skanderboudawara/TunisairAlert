@@ -164,8 +164,8 @@ def create_daily_png_report():
     # Worse flight
     if arrival_delayed_max > 0:
         # Title to be added if exist
-        w, h = get_text_dimensions(f'WORSE FLIGHT: {worse_flight_number}', ImageFont.truetype(path_skyfont, 25))
-        add_banner(Report, (1080-w)/2, 340, f'WORSE FLIGHT: ',
+        w, h = get_text_dimensions(f'WORST FLIGHT N°: {worse_flight_number}', ImageFont.truetype(path_skyfont, 25))
+        add_banner(Report, (1080-w)/2, 340, f'WORST FLIGHT N°:',
                 f'{worse_flight_number}')
 
         # worse flight in DEP ARRIV

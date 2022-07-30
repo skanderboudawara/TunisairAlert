@@ -150,7 +150,6 @@ def get_flight(type_flight, force_upade=False):
         ##################################################
         # correction of departure delay
         ##################################################
-        
         if departure_actual is not None:
             datetime_departure_actual = datetime.fromisoformat(departure_actual).astimezone(pytz.timezone(tz))
             dep_hour = datetime_departure_actual.strftime("%H")
