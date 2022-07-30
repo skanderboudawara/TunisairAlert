@@ -17,6 +17,15 @@ def mins_between(d1, d2):
     minutes = c.total_seconds() / 60
     return abs(minutes)
 
+def days_between(d1, d2):
+    d1 = d1.replace(hour=0, minute=0, second=0, microsecond=0)
+    d2 = d2.replace(hour=0, minute=0, second=0, microsecond=0)
+    '''
+    function to get how many days is between days
+    '''
+    c = d1 - d2
+    days = c.days
+    return days
 
 def time_compare_message(time_in_between):
     '''

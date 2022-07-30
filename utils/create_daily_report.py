@@ -106,15 +106,15 @@ def create_daily_png_report():
     conn = sqlite3.connect(sql_table_loc)
     cursor = conn.cursor()
     sql_success_departure = f'SELECT COUNT(*) FROM TUNISAIR_FLIGHTS WHERE DEPARTURE_DATE="{str(todays_date)}" AND FLIGHT_STATUS<>"cancelled"'
-    sql_departure_delayed = f'SELECT COUNT(*) FROM TUNISAIR_FLIGHTS WHERE DEPARTURE_DATE="{str(todays_date)}" AND DEPARTURE_DELAY<>""'
-    sql_departure_delayed_min = f'SELECT MIN(DEPARTURE_DELAY) FROM TUNISAIR_FLIGHTS WHERE DEPARTURE_DATE="{str(todays_date)}" AND DEPARTURE_DELAY<>""'
-    sql_departure_delayed_max = f'SELECT MAX(DEPARTURE_DELAY) FROM TUNISAIR_FLIGHTS WHERE DEPARTURE_DATE="{str(todays_date)}" AND DEPARTURE_DELAY<>""'
-    sql_departure_delayed_avg = f'SELECT AVG(DEPARTURE_DELAY) FROM TUNISAIR_FLIGHTS WHERE DEPARTURE_DATE="{str(todays_date)}" AND DEPARTURE_DELAY<>""'
+    sql_departure_delayed = f'SELECT COUNT(*) FROM TUNISAIR_FLIGHTS WHERE DEPARTURE_DATE="{str(todays_date)}" AND DEPARTURE_DELAY<>"" AND FLIGHT_STATUS<>"cancelled"'
+    sql_departure_delayed_min = f'SELECT MIN(DEPARTURE_DELAY) FROM TUNISAIR_FLIGHTS WHERE DEPARTURE_DATE="{str(todays_date)}" AND DEPARTURE_DELAY<>"" AND FLIGHT_STATUS<>"cancelled"'
+    sql_departure_delayed_max = f'SELECT MAX(DEPARTURE_DELAY) FROM TUNISAIR_FLIGHTS WHERE DEPARTURE_DATE="{str(todays_date)}" AND DEPARTURE_DELAY<>"" AND FLIGHT_STATUS<>"cancelled"'
+    sql_departure_delayed_avg = f'SELECT AVG(DEPARTURE_DELAY) FROM TUNISAIR_FLIGHTS WHERE DEPARTURE_DATE="{str(todays_date)}" AND DEPARTURE_DELAY<>"" AND FLIGHT_STATUS<>"cancelled"'
     sql_fail_departure = f'SELECT COUNT(*) FROM TUNISAIR_FLIGHTS WHERE DEPARTURE_DATE="{str(todays_date)}" AND FLIGHT_STATUS="cancelled"'
-    sql_arrival_delayed = f'SELECT COUNT(*) FROM TUNISAIR_FLIGHTS WHERE DEPARTURE_DATE="{str(todays_date)}" AND ARRIVAL_DELAY<>""'
-    sql_arrival_delayed_min = f'SELECT MIN(ARRIVAL_DELAY) FROM TUNISAIR_FLIGHTS WHERE DEPARTURE_DATE="{str(todays_date)}"  AND ARRIVAL_DELAY<>""'
-    sql_arrival_delayed_max = f'SELECT MAX(ARRIVAL_DELAY) FROM TUNISAIR_FLIGHTS WHERE DEPARTURE_DATE="{str(todays_date)}"  AND ARRIVAL_DELAY<>""'
-    sql_arrival_delayed_avg = f'SELECT AVG(ARRIVAL_DELAY) FROM TUNISAIR_FLIGHTS WHERE DEPARTURE_DATE="{str(todays_date)}"  AND ARRIVAL_DELAY<>""'
+    sql_arrival_delayed = f'SELECT COUNT(*) FROM TUNISAIR_FLIGHTS WHERE DEPARTURE_DATE="{str(todays_date)}" AND ARRIVAL_DELAY<>"" AND FLIGHT_STATUS<>"cancelled"'
+    sql_arrival_delayed_min = f'SELECT MIN(ARRIVAL_DELAY) FROM TUNISAIR_FLIGHTS WHERE DEPARTURE_DATE="{str(todays_date)}"  AND ARRIVAL_DELAY<>"" AND FLIGHT_STATUS<>"cancelled"'
+    sql_arrival_delayed_max = f'SELECT MAX(ARRIVAL_DELAY) FROM TUNISAIR_FLIGHTS WHERE DEPARTURE_DATE="{str(todays_date)}"  AND ARRIVAL_DELAY<>"" AND FLIGHT_STATUS<>"cancelled"'
+    sql_arrival_delayed_avg = f'SELECT AVG(ARRIVAL_DELAY) FROM TUNISAIR_FLIGHTS WHERE DEPARTURE_DATE="{str(todays_date)}"  AND ARRIVAL_DELAY<>"" AND FLIGHT_STATUS<>"cancelled"'
 
     # SQL Execute
     nb_success_departures = cursor.execute(sql_success_departure).fetchone()[0]
@@ -132,9 +132,9 @@ def create_daily_png_report():
     arrival_delayed_avg = round(cursor.execute(
         sql_arrival_delayed_avg).fetchone()[0], 0)
 
-    sql_airport_depart_max = f'SELECT DEPARTURE_IATA FROM TUNISAIR_FLIGHTS WHERE DEPARTURE_DATE="{str(todays_date)}" AND ARRIVAL_DELAY!="{str(arrival_delayed_max)}"'
-    sql_airport_arrive_max = f'SELECT ARRIVAL_IATA FROM TUNISAIR_FLIGHTS WHERE DEPARTURE_DATE="{str(todays_date)}" AND ARRIVAL_DELAY!="{str(arrival_delayed_max)}"'
-    sql_worse_flight_number = f'SELECT FLIGHT_NUMBER FROM TUNISAIR_FLIGHTS WHERE DEPARTURE_DATE="{str(todays_date)}" AND ARRIVAL_DELAY!="{str(arrival_delayed_max)}"'
+    sql_airport_depart_max = f'SELECT DEPARTURE_IATA FROM TUNISAIR_FLIGHTS WHERE DEPARTURE_DATE="{str(todays_date)}" AND ARRIVAL_DELAY="{str(arrival_delayed_max)}" AND FLIGHT_STATUS<>"cancelled"'
+    sql_airport_arrive_max = f'SELECT ARRIVAL_IATA FROM TUNISAIR_FLIGHTS WHERE DEPARTURE_DATE="{str(todays_date)}" AND ARRIVAL_DELAY="{str(arrival_delayed_max)}" AND FLIGHT_STATUS<>"cancelled"'
+    sql_worse_flight_number = f'SELECT FLIGHT_NUMBER FROM TUNISAIR_FLIGHTS WHERE DEPARTURE_DATE="{str(todays_date)}" AND ARRIVAL_DELAY="{str(arrival_delayed_max)}" AND FLIGHT_STATUS<>"cancelled"'
     airport_worse_dep = cursor.execute(sql_airport_depart_max).fetchone()[0]
     airport_worse_arr = cursor.execute(sql_airport_arrive_max).fetchone()[0]
     worse_flight_number = cursor.execute(sql_worse_flight_number).fetchone()[0]

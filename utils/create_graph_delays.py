@@ -28,25 +28,26 @@ def create_plot_arr_delay_cumulated():
     current_time = datetime.now().astimezone(pytz.timezone(tz))
     todays_date = current_time.strftime("%d/%m/%Y")
 
-    # Dataset query
-    dat = sqlite3.connect(sql_table_loc)
-    query = dat.execute(
-        f'SELECT * From TUNISAIR_FLIGHTS WHERE DEPARTURE_DATE="{str(todays_date)}"')
-    cols = [column[0] for column in query.description]
-
-    # Transform the SQL table to pandas + refactor the types
-    df = pd.DataFrame.from_records(data=query.fetchall(), columns=cols)
-    df = df.convert_dtypes()
-    df["DEPARTURE_DELAY"] = pd.to_numeric(df["DEPARTURE_DELAY"])
-    df["ARRIVAL_DELAY"] = pd.to_numeric(df["ARRIVAL_DELAY"])
+    
 
     def create_plot(type_flight):
+        # Dataset query
+        dat = sqlite3.connect(sql_table_loc)
+        query = dat.execute(
+            f'SELECT * From TUNISAIR_FLIGHTS WHERE {type_flight}_DATE="{str(todays_date)}" AND FLIGHT_STATUS<>"cancelled"')
+        cols = [column[0] for column in query.description]
+        
+        # Transform the SQL table to pandas + refactor the types
+        df = pd.DataFrame.from_records(data=query.fetchall(), columns=cols)
+        df = df.convert_dtypes()
+        df["DEPARTURE_DELAY"] = pd.to_numeric(df["DEPARTURE_DELAY"])
+        df["ARRIVAL_DELAY"] = pd.to_numeric(df["ARRIVAL_DELAY"])
         # Creating the pivot table
         df_ftype_delay = df[[f"{type_flight}_DELAY",
                            f"{type_flight}_HOUR", "FLIGHT_STATUS"]]
         df_ftype_delay = df_ftype_delay.pivot_table(values=f'{type_flight}_DELAY',
                                                 index=f'{type_flight}_HOUR',
-                                                columns='FLIGHT_STATUS', aggfunc='sum')
+                                                columns='FLIGHT_STATUS', aggfunc='mean')
         # Creating the figures
         fig, ax = plt.subplots(
             facecolor='black', figsize=((1080/2)/96, 200/96))
@@ -62,7 +63,7 @@ def create_plot_arr_delay_cumulated():
                           )
         # Adjusting the metadata
         ax.set_facecolor('black')
-        ax.set_title(f'Cumulated {type_flight} delays', fontproperties=prop, y=1.2)
+        ax.set_title(f'AVERAGE {type_flight} delays', fontproperties=prop, y=1.2)
         ax.title.set_fontsize(18)
         ax.title.set_color('orange')
 
@@ -73,6 +74,7 @@ def create_plot_arr_delay_cumulated():
         ax.xaxis.label.set_color('white')
         ax.yaxis.label.set_color('white')
         ax.set_xlabel(None)
+        ax.set_ylabel('Minutes')
         ax.tick_params(axis='y', colors='white')
         ax.tick_params(axis='x', colors='white')
 
@@ -86,5 +88,8 @@ def create_plot_arr_delay_cumulated():
         # Save picture and return its path
         picture_to_save = f'{path_report_save}/{current_time.strftime("%d_%m_%Y")}_{type_flight[:3]}_delayreport.png'
         fig.savefig(picture_to_save, bbox_inches='tight')
+
+        dat.commit()
+        dat.close()
         return picture_to_save
     return create_plot('ARRIVAL'), create_plot('DEPARTURE')

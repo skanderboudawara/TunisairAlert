@@ -3,7 +3,7 @@ import os  # Create and organize folders
 import json  # Json manipulations
 from datetime import datetime, timedelta  # datetime
 import pytz  # timezone
-from utils.utility import mins_between
+from utils.utility import mins_between, days_between
 from utils.sql_func import update_table  # SQL interactions
 
 
@@ -18,7 +18,6 @@ from pyairports.airports import Airports
 ##################################################
 tz = "Africa/Tunis"
 # https://airlabs.co
-
 
 
 def get_flight(type_flight, force_upade=False):
@@ -36,14 +35,23 @@ def get_flight(type_flight, force_upade=False):
     The main goal is to have 1 file / day / Month 
     '''
     # To get Airlabs token stored in token.txt
-    with open('token.txt') as f:
-        _token = f.readlines()[0]
-    if _token == '' | _token is None:
+    if not(os.path.exists(os.path.join(os.path.abspath(os.curdir), 'token.txt'))):
+        with open(os.path.join(os.path.abspath(os.curdir), 'token.txt'), 'w') as f:
+            pass
+
+    with open(os.path.join(os.path.abspath(os.curdir), 'token.txt')) as f:
+        lines = f.readlines()
+        if (len(lines) <= 0):
+            print('You need to register to airlabs.co and put the token in the token.txt file')
+            return
+        _token = lines[0]
+    if (_token == '') | (_token is None):
         print('You need to register to airlabs.co and put the token in the token.txt file')
-        return 
+        return
     # File and dir checking
     # current_time = (datetime.now()- timedelta(days=1)).astimezone(pytz.timezone(tz)) # To be used for yesterday
     current_time = datetime.now().astimezone(pytz.timezone(tz))
+    print(current_time)
     directory_flight_type = f'datasets/{type_flight}/{current_time.strftime("%m")}'
     path_flight_type = os.path.join(
         os.path.abspath(os.curdir), directory_flight_type)
@@ -60,17 +68,18 @@ def get_flight(type_flight, force_upade=False):
     # Else pull request
     else:
         print('getting json API')
+        print(f'https://airlabs.co/api/v9/schedules?{type_flight[:3]}_iata=TUN&airline_iata=TU&api_key={_token}')
         response = requests.get(
-            f'https://airlabs.co/api/v9/schedules?{type_flight[:3]}_iata=TUN&{type_flight[:3]}_time={current_time.strftime("%d-%m-%Y")}airline_iata=TU&api_key={_token}')
+            f'https://airlabs.co/api/v9/schedules?{type_flight[:3]}_iata=TUN&airline_iata=TU&api_key={_token}')
         if response.json():
             with open(f'{path_flight_type}/{file_flight_type}', 'w') as f:
                 json.dump(response.json(), f)
             json_flight = response.json()
 
-    if (json_flight == {} )| (~('response' in json_flight)) | json_flight is None:
+    if (json_flight == {}) | (not('response' in json_flight)) | (json_flight is None):
         print('You need to register to airlabs.co and put the token in the token.txt file')
         print('be careful you may have reached your limit free plan Airlabs API requests')
-        return 
+        return
 
     # Get the response data
     real_time_flights = json_flight['response']
@@ -81,96 +90,96 @@ def get_flight(type_flight, force_upade=False):
         flight_status = flight['status']
         departure_IATA = flight['dep_iata']
         arrival_IATA = flight['arr_iata']
-        departure_airport = Airports().lookup(departure_IATA).city + ' ' + \
-            Airports().lookup(departure_IATA).name
-        arrival_airport = Airports().lookup(arrival_IATA).city + ' ' + \
-            Airports().lookup(arrival_IATA).name
+
+        # I will handle erros if TUNISAIR made some unknown connections
+        try:
+            departure_airport = Airports().lookup(departure_IATA).city + ' ' + Airports().lookup(departure_IATA).name
+        except:
+            departure_airport = 'UNKNOWN'
+        try:
+            arrival_airport = Airports().lookup(arrival_IATA).city + ' ' + Airports().lookup(arrival_IATA).name
+        except:
+            arrival_airport = 'UNKNOWN'
 
         departure_scheduled = flight['dep_time']
         arrival_scheduled = flight['arr_time']
-        dep_hour = datetime.fromisoformat(departure_scheduled).astimezone(
-            pytz.timezone(tz)).strftime("%H")
-        arr_hour = datetime.fromisoformat(arrival_scheduled).astimezone(
-            pytz.timezone(tz)).strftime("%H")
+        
+        # Handling if exist
         departure_estimated = flight['dep_estimated'] if 'dep_estimated' in flight else None
         arrival_estimated = flight['arr_estimated'] if 'arr_estimated' in flight else None
         departure_actual = flight['dep_actual'] if 'dep_actual' in flight else None
         arrival_actual = flight['arr_actual'] if 'arr_actual' in flight else None
         departure_delay = flight['delayed'] if 'delayed' in flight else 0
         arrival_delay = flight['delayed'] if 'delayed' in flight else 0
-        departure_date = datetime.fromisoformat(departure_scheduled).astimezone(
-            pytz.timezone(tz)).strftime("%d/%m/%Y")
 
+        # Conversion to datetime
+        datetime_arrival_scheduled = datetime.fromisoformat(arrival_scheduled).astimezone(pytz.timezone(tz))
+        datetime_departure_scheduled = datetime.fromisoformat(departure_scheduled).astimezone(pytz.timezone(tz))
+        dep_hour = datetime_departure_scheduled.strftime("%H")
+        arr_hour = datetime_arrival_scheduled.strftime("%H")
+        departure_date = datetime_departure_scheduled.strftime("%d/%m/%Y")
+        arrival_date = datetime_departure_scheduled.strftime("%d/%m/%Y")
         ##################################################
         # I have seen that the  flight status and delays are sometimes wrong and needs to be corrected
         # Correction of landing
         # Correction of arrival delay
         ##################################################
+        
         if arrival_actual is not None:
-            arr_hour = datetime.fromisoformat(arrival_actual).astimezone(
-                pytz.timezone(tz)).strftime("%H")
-            if datetime.fromisoformat(arrival_actual).astimezone(pytz.timezone(tz)) <= current_time:
+            datime_arrival_actual = datetime.fromisoformat(arrival_actual).astimezone(pytz.timezone(tz))
+            arr_hour = datime_arrival_actual.strftime("%H")
+            arrival_date = datime_arrival_actual.strftime("%d/%m/%Y")
+            if datime_arrival_actual <= current_time:
                 flight_status = 'landed'
-                arrival_delay = mins_between(
-                    datetime.fromisoformat(
-                        arrival_actual).astimezone(pytz.timezone(tz)),
-                    datetime.fromisoformat(
-                        arrival_scheduled).astimezone(pytz.timezone(tz))
-                )
-            
+                arrival_delay = mins_between(datime_arrival_actual,datetime_arrival_scheduled)
+            if days_between(datime_arrival_actual,datetime_arrival_scheduled) != 0:
+                flight_status = 'cancelled'
         elif arrival_estimated is not None:
-            arr_hour = datetime.fromisoformat(arrival_estimated).astimezone(
-                pytz.timezone(tz)).strftime("%H")
-            if datetime.fromisoformat(arrival_estimated).astimezone(pytz.timezone(tz)) <= current_time:
+            datetime_arrival_estimated = datetime.fromisoformat(arrival_estimated).astimezone(pytz.timezone(tz))
+            arr_hour = datetime_arrival_estimated.strftime("%H")
+            arrival_date = datetime_arrival_estimated.strftime("%d/%m/%Y")
+            if datetime_arrival_estimated <= current_time:
                 flight_status = 'landed'
-                arrival_delay = mins_between(
-                    datetime.fromisoformat(
-                        arrival_estimated).astimezone(pytz.timezone(tz)),
-                    datetime.fromisoformat(
-                        arrival_scheduled).astimezone(pytz.timezone(tz))
-                )
-            
+                arrival_delay = mins_between(datetime_arrival_estimated,datetime_arrival_scheduled)
+            if days_between(datetime_arrival_estimated,datetime_arrival_scheduled) != 0:
+                flight_status = 'cancelled'
         elif arrival_scheduled is not None:
-            if datetime.fromisoformat(arrival_scheduled).astimezone(pytz.timezone(tz)) <= current_time:
+            if datetime_arrival_scheduled <= current_time:
                 flight_status = 'landed'
 
         ##################################################
         # correction of departure delay
         ##################################################
+        
         if departure_actual is not None:
-            dep_hour = datetime.fromisoformat(departure_actual).astimezone(
-                    pytz.timezone(tz)).strftime("%H")
-            if datetime.fromisoformat(departure_actual).astimezone(pytz.timezone(tz)) > datetime.fromisoformat(departure_scheduled).astimezone(pytz.timezone(tz)):
-                departure_delay = mins_between(
-                    datetime.fromisoformat(
-                        departure_actual).astimezone(pytz.timezone(tz)),
-                    datetime.fromisoformat(
-                        departure_scheduled).astimezone(pytz.timezone(tz))
-                )
-                
+            datetime_departure_actual = datetime.fromisoformat(departure_actual).astimezone(pytz.timezone(tz))
+            dep_hour = datetime_departure_actual.strftime("%H")
+            departure_date = datetime_departure_actual.strftime("%d/%m/%Y")
+            if datetime_departure_actual > datetime_departure_scheduled:
+                departure_delay = mins_between(datetime_departure_actual,datetime_departure_scheduled)
+            if days_between(datetime_departure_actual,datetime_departure_scheduled) != 0:
+                flight_status = 'cancelled'
         elif departure_estimated is not None:
-            dep_hour = datetime.fromisoformat(departure_estimated).astimezone(
-                    pytz.timezone(tz)).strftime("%H")
-            if datetime.fromisoformat(departure_estimated).astimezone(pytz.timezone(tz)) > datetime.fromisoformat(departure_scheduled).astimezone(pytz.timezone(tz)):
-                departure_delay = mins_between(
-                    datetime.fromisoformat(
-                        departure_estimated).astimezone(pytz.timezone(tz)),
-                    datetime.fromisoformat(
-                        departure_scheduled).astimezone(pytz.timezone(tz))
-                )
-                
+            datetime_departure_estimated = datetime.fromisoformat(departure_estimated).astimezone(pytz.timezone(tz))
+            dep_hour = datetime_departure_estimated.strftime("%H")
+            departure_date = datetime_departure_estimated.strftime("%d/%m/%Y")
+            if datetime_departure_estimated > datetime_departure_scheduled:
+                departure_delay = mins_between(datetime_departure_estimated,datetime_departure_scheduled)
+            if days_between(datetime_departure_estimated,datetime_departure_scheduled) != 0:
+                flight_status = 'cancelled'
+
         ##################################################
         # Data to be injected in the SQL
         # The Flight_number _ FULL DATE will be my unique key
         # Replacing NONE by null text string
         ##################################################
-        flight_key = flight_number + '_' + datetime.fromisoformat(
-            departure_scheduled).astimezone(pytz.timezone(tz)).strftime("%d_%m_%Y_%H_%M")
+        flight_key = flight_number + '_' + datetime_departure_scheduled.strftime("%d_%m_%Y_%H_%M")
         dep_hour = dep_hour+'h'
         arr_hour = arr_hour+'h'
         flight_extracted = (
             flight_key,
             departure_date,
+            arrival_date,
             flight_number,
             flight_status,
             departure_IATA,
