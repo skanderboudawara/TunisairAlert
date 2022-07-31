@@ -12,7 +12,7 @@ matplotlib.use('Agg')
 tz = "Africa/Tunis"
 sql_table_name = "TUN_FLIGHTS"
 
-
+# Adding Airlines
 # Path of the font and assign the font to prop
 # https://www.1001fonts.com/airport-fonts.html
 def get_font_prop(font_name):

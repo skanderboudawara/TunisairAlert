@@ -9,7 +9,7 @@ flight_table_columns = ("ID_FLIGHT", "DEPARTURE_DATE", "ARRIVAL_DATE", "FLIGHT_N
 sql_table_name = "TUN_FLIGHTS"
 sql_table_loc = path_flight_type = os.path.join(
     os.path.abspath(os.curdir), 'datasets/SQL table/tunisair_delay.db')
-
+# Adding Airlines
 
 def create_table():
     '''
