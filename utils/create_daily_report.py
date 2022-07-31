@@ -22,11 +22,11 @@ airline_name = {
 font_size = 20
 # https://www.1001fonts.com/airport-fonts.html
 path_skyfont = os.path.join(os.path.abspath(
-    os.curdir), 'reports/fonts/LEDBDREV.TTF')
+    os.curdir), 'fonts/LEDBDREV.TTF')
 path_skyfont_inverted = os.path.join(
-    os.path.abspath(os.curdir), 'reports/fonts/LEDBOARD.TTF')
+    os.path.abspath(os.curdir), 'fonts/LEDBOARD.TTF')
 path_font_glyph_airport = os.path.join(
-    os.path.abspath(os.curdir), 'reports/fonts/GlyphyxOneNF.ttf')
+    os.path.abspath(os.curdir), 'fonts/GlyphyxOneNF.ttf')
 
 # SQL Table
 sql_table_loc = os.path.join(os.path.abspath(
@@ -63,9 +63,9 @@ def add_banner(Report, position_l, position_t, label, value):
     the value will be in white
     '''
     path_skyfont = os.path.join(os.path.abspath(
-        os.curdir), 'reports/fonts/LEDBDREV.TTF')
+        os.curdir), 'fonts/LEDBDREV.TTF')
     path_skyfont_inverted = os.path.join(
-        os.path.abspath(os.curdir), 'reports/fonts/LEDBOARD.TTF')
+        os.path.abspath(os.curdir), 'fonts/LEDBOARD.TTF')
     Report.text((position_l+10, position_t), label,
                 font=ImageFont.truetype(path_skyfont_inverted, font_size), fill='black')
     w, h = get_text_dimensions(
@@ -96,7 +96,7 @@ def create_daily_png_report(current_time):
 
     # Tunisair LOGO Treatement
     # Adding Tunisair logo
-    with Image.open(f'{path_report}/Tunisair_logo.jpg') as tunisair_logo:
+    with Image.open('tunisair_alert_logo.png') as tunisair_logo:
         report_img.paste(tunisair_logo, (25, 25))
 
     Report = ImageDraw.Draw(report_img)

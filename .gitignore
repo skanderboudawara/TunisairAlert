@@ -166,7 +166,7 @@ cython_debug/
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 #.idea/
 credential.json
-*.png 
 *.json
 /reports/*
 *.pyc
+import_new_db.py

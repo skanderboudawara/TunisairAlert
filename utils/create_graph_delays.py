@@ -17,13 +17,13 @@ sql_table_name = "TUN_FLIGHTS"
 # https://www.1001fonts.com/airport-fonts.html
 def get_font_prop(font_name):
     fpath = os.path.join(os.path.abspath(os.curdir),
-                         f'reports/fonts/{font_name}')
+                         f'fonts/{font_name}')
     return fm.FontProperties(fname=fpath)
 
 
 def get_df_sql_data(type_flight, todays_date):
     # Path of the SQL Table
-    sql_table_loc = path_flight_type = os.path.join(
+    sql_table_loc = os.path.join(
         os.path.abspath(os.curdir), 'datasets/SQL table/tunisair_delay.db')
     dat = sqlite3.connect(sql_table_loc)
     query = dat.execute(

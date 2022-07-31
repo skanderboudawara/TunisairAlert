@@ -1,6 +1,6 @@
 #!/usr/bin/python
 from utils.create_daily_report import create_daily_png_report
-from post_to_twitter.post_tweet_with_image import post_tweet_with_pic
+from pytwitter.post_twitter import post_tweet_with_pic
 from datetime import datetime, timedelta
 import pytz
 

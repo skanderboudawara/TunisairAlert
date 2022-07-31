@@ -1,6 +1,6 @@
 #!/usr/bin/python
 import tweepy
-from post_to_twitter.get_cred import get_authentification_json
+from pytwitter.get_cred import get_authentification_json
 
 
 def post_tweet_with_pic(tweet_msg, picture_loc=None):

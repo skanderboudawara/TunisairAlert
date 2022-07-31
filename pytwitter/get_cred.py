@@ -6,7 +6,7 @@ import os
 
 def get_authentification_json():
     path_to_credential = os.path.join(
-        os.path.abspath(os.curdir), 'credential.json')
+        os.path.abspath(os.curdir), 'pytwitter/credential.json')
     if os.path.isfile(path_to_credential):
         with open(path_to_credential) as f:
             return json.load(f)
@@ -20,3 +20,5 @@ def get_authentification_json():
         with open(path_to_credential, 'w') as f:
             json.dump(default_dic, f)
         return {}
+
+
