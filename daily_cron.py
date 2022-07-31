@@ -8,6 +8,6 @@ tz = "Africa/Tunis"
 current_time = datetime.now().astimezone(pytz.timezone(tz))
 
 if __name__ == "__main__":
-    get_flight('departure', True)
-    get_flight('arrival', True)
+    get_flight('departure',True)
+    get_flight('arrival',True)
     create_daily_png_report(current_time)

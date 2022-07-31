@@ -4,8 +4,9 @@ import os
 flight_table_columns = ("ID_FLIGHT", "DEPARTURE_DATE", "ARRIVAL_DATE", "FLIGHT_NUMBER", "FLIGHT_STATUS", "DEPARTURE_IATA", "DEPARTURE_AIRPORT",
                         "ARRIVAL_IATA", "ARRIVAL_AIRPORT",  "DEPARTURE_SCHEDULED", "DEPARTURE_HOUR",
                         "ARRIVAL_SCHEDULED", "ARRIVAL_HOUR", "DEPARTURE_ESTIMATED", "ARRIVAL_ESTIMATED", "DEPARTURE_ACTUAL",
-                        "ARRIVAL_ACTUAL", "DEPARTURE_DELAY", "ARRIVAL_DELAY")
+                        "ARRIVAL_ACTUAL", "DEPARTURE_DELAY", "ARRIVAL_DELAY","AIRLINE")
 
+sql_table_name = "TUN_FLIGHTS"
 sql_table_loc = path_flight_type = os.path.join(
     os.path.abspath(os.curdir), 'datasets/SQL table/tunisair_delay.db')
 
@@ -16,7 +17,7 @@ def create_table():
     '''
     conn = sqlite3.connect(sql_table_loc)
     cursor = conn.cursor()
-    sql = '''CREATE TABLE  if not exists "TUNISAIR_FLIGHTS" (
+    sql = f'''CREATE TABLE  if not exists {sql_table_name} (
         "ID_FLIGHT" TEXT NOT NULL,
         "DEPARTURE_DATE" TEXT,
         "ARRIVAL_DATE" TEXT,
@@ -36,6 +37,7 @@ def create_table():
         "ARRIVAL_ACTUAL" TEXT,
         "DEPARTURE_DELAY" INT,
         "ARRIVAL_DELAY" INT,
+        "AIRLINE" TEXT,
         PRIMARY KEY("ID_FLIGHT")
     )'''
     cursor.execute(sql)
@@ -51,7 +53,7 @@ def insert_in_table(values):
     if create_table():
         conn = sqlite3.connect(sql_table_loc)
         cursor = conn.cursor()
-        sql = f"INSERT INTO TUNISAIR_FLIGHTS {str(flight_table_columns)} VALUES {str(values)}"
+        sql = f"INSERT INTO {sql_table_name} {str(flight_table_columns)} VALUES {str(values)}"
         cursor.execute(sql)
         conn.commit()
         conn.close()
@@ -69,7 +71,7 @@ def update_table(key, values):
                 cross_col = cross_col + col + '="' + str(values[index]) + '", '
             conn = sqlite3.connect(sql_table_loc)
             cursor = conn.cursor()
-            sql = f'UPDATE TUNISAIR_FLIGHTS SET {cross_col[:-2]} WHERE ID_FLIGHT="{key}"'
+            sql = f'UPDATE {sql_table_name} SET {cross_col[:-2]} WHERE ID_FLIGHT="{key}"'
             cursor.execute(sql)
             conn.commit()
             conn.close()
@@ -85,7 +87,7 @@ def check_key(key):
     if create_table():
         conn = sqlite3.connect(sql_table_loc)
         cursor = conn.cursor()
-        sql = f'SELECT 1 FROM TUNISAIR_FLIGHTS WHERE ID_FLIGHT="{key}"'
+        sql = f'SELECT 1 FROM {sql_table_name} WHERE ID_FLIGHT="{key}"'
         check = cursor.execute(sql)
         if check.fetchone() is None:
             conn.commit()

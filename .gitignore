@@ -170,3 +170,10 @@ credential.json
 *.json
 /reports/*
 *.pyc
+datasets/arrival/07/31-07-2022_arrival_flights.json
+datasets/departure/07/31-07-2022_departure_flights.json
+
+reports/07/30_07_2022_report.png
+
+pyairports/__pycache__/airports.cpython-39.pyc
+reports/07/31_07_2022_report.png

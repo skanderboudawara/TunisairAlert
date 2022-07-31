@@ -55,16 +55,18 @@ def fatal_code(e):
                       requests.exceptions.RequestException,
                       max_time=300,
                       giveup=fatal_code)
-def get_json_api(type_flight, airport_iata, airline_iata):
+def get_json_api(type_flight, airport_iata, airline_iata=None):
     '''
     To make the API Request
     '''
     _token = get_token()
     if _token:
         print('getting json API')
-        print(
-            f'https://airlabs.co/api/v9/schedules?{type_flight[:3]}_iata={airport_iata}&airline_iata={airline_iata}&api_key={_token}')
-        return requests.get(f'https://airlabs.co/api/v9/schedules?{type_flight[:3]}_iata={airport_iata}&airline_iata={airline_iata}&api_key={_token}')
+        if airline_iata is not None:
+            airline_iata = '&airline_iata='+airline_iata if isinstance(airline_iata, str) else ''.join(['&airline_iata='+airline for airline in airline_iata])
+        api_request = f'https://airlabs.co/api/v9/schedules?{type_flight[:3]}_iata={airport_iata}{airline_iata}&api_key={_token}'
+        print(api_request)
+        return requests.get(api_request)
 
 
 def json_location(type_flight, current_time):
@@ -188,7 +190,7 @@ def get_json_dict(json_file, force_upade, type_flight):
             json_flight = json.load(f)
     # Else pull request
     else:
-        response = get_json_api(type_flight, 'TUN', 'TU')
+        response = get_json_api(type_flight, 'TUN', ['TU','BJ','AF','HV'])
         json_flight = response.json()
         if json_flight:
             with open(json_file, 'w') as f:
@@ -228,6 +230,7 @@ def get_flight(type_flight, force_upade=False):
 
     # Loop through each flight and  prepare the data
     for flight in real_time_flights:
+        airline = flight['airline_iata']
         flight_number = flight['flight_iata']
         flight_status = flight['status']
         departure_IATA = flight['dep_iata']
@@ -267,7 +270,7 @@ def get_flight(type_flight, force_upade=False):
         ##################################################
         flight_key = get_flight_key(flight_number, departure_scheduled)
         flight_extracted = (flight_key, departure_date, arrival_date, flight_number, flight_status, departure_IATA, departure_airport, arrival_IATA, arrival_airport,
-                            departure_scheduled, dep_hour, arrival_scheduled, arr_hour, departure_estimated, arrival_estimated, departure_actual, arrival_actual, departure_delay, arrival_delay)
+                            departure_scheduled, dep_hour, arrival_scheduled, arr_hour, departure_estimated, arrival_estimated, departure_actual, arrival_actual, departure_delay, arrival_delay,airline)
         ##################################################
         # Updating the SQL TABLE
         # If the unique key exist => It will be updated

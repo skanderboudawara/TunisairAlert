@@ -12,7 +12,13 @@ from utils.create_graph_delays import create_plot_arr_delay_cumulated
 
 # Import necessary fonts
 tz = "Africa/Tunis"
-
+airline_name = {
+            'TU': 'TUNISAIR',
+            'AF': 'AIR FRANCE',
+            'BJ' : 'NOUVELAIR',
+            'HV' : 'TRANSAVIA'
+        }
+font_size = 20
 # https://www.1001fonts.com/airport-fonts.html
 path_skyfont = os.path.join(os.path.abspath(
     os.curdir), 'reports/fonts/LEDBDREV.TTF')
@@ -24,6 +30,7 @@ path_font_glyph_airport = os.path.join(
 # SQL Table
 sql_table_loc = os.path.join(os.path.abspath(
     os.curdir), 'datasets/SQL table/tunisair_delay.db')
+sql_table_name = "TUN_FLIGHTS"
 
 
 def hex_to_rgb(value):
@@ -59,13 +66,13 @@ def add_banner(Report, position_l, position_t, label, value):
     path_skyfont_inverted = os.path.join(
         os.path.abspath(os.curdir), 'reports/fonts/LEDBOARD.TTF')
     Report.text((position_l+10, position_t), label,
-                font=ImageFont.truetype(path_skyfont_inverted, 25), fill='black')
+                font=ImageFont.truetype(path_skyfont_inverted, font_size), fill='black')
     w, h = get_text_dimensions(
-        label, ImageFont.truetype(path_skyfont_inverted, 25))
+        label, ImageFont.truetype(path_skyfont_inverted, font_size))
     Report.text((position_l+w+10, position_t), str(value),
-                font=ImageFont.truetype(path_skyfont, 25), fill='white')
+                font=ImageFont.truetype(path_skyfont, font_size), fill='white')
     Report.text((position_l+10, position_t), label,
-                font=ImageFont.truetype(path_skyfont, 25), fill='orange')
+                font=ImageFont.truetype(path_skyfont, font_size), fill='orange')
 
 
 def get_picture_to_save_loc(current_time):
@@ -94,11 +101,11 @@ def create_daily_png_report(current_time):
     Report = ImageDraw.Draw(report_img)
 
     # Big Title
-    Report.text((260, 20), f'TUNISAIR flight report {current_time.strftime("%a %d %b %Y")}', font=ImageFont.truetype(
+    Report.text((260, 15), f'TUNISAIR flight report {current_time.strftime("%a %d %b %Y")}', font=ImageFont.truetype(
         path_skyfont, 25), fill='black')
     # Subtitle
-    Report.text((260, 55), f'ONLY ON TUNISAIR FLIGHT AND FLEET',
-                font=ImageFont.truetype(path_skyfont, 18), fill='black')
+    Report.text((260, 50), f'SCOPE FROM/TO TUNISIA\nAIRLINES: TUNISAIR - NOUVELAIR - AIR FRANCE - TRANSAVIA',
+                font=ImageFont.truetype(path_skyfont, 15), fill='black')
 
     # KPI
     Report.rectangle((0, 100, 1080, 720), fill='black')
@@ -110,15 +117,15 @@ def create_daily_png_report(current_time):
     conn = sqlite3.connect(sql_table_loc)
     cursor = conn.cursor()
 
-    sql_success_departure = f'SELECT COUNT(*) FROM TUNISAIR_FLIGHTS WHERE DEPARTURE_DATE="{str(todays_date)}" AND FLIGHT_STATUS<>"cancelled"'
+    sql_success_departure = f'SELECT COUNT(*) FROM {sql_table_name} WHERE DEPARTURE_DATE="{str(todays_date)}" AND AIRLINE="TU"  AND FLIGHT_STATUS<>"cancelled"'
     nb_success_departures = cursor.execute(sql_success_departure).fetchone()[0]
     add_banner(Report, v_start_dep, h_start,
                'TUNISAIR FLIGHTS:', nb_success_departures)
 
-    sql_fail_departure = f'SELECT COUNT(*) FROM TUNISAIR_FLIGHTS WHERE DEPARTURE_DATE="{str(todays_date)}" AND FLIGHT_STATUS="cancelled"'
+    sql_fail_departure = f'SELECT COUNT(*) FROM {sql_table_name} WHERE DEPARTURE_DATE="{str(todays_date)}" AND AIRLINE="TU" AND FLIGHT_STATUS="cancelled"'
     nb_fail_flight = cursor.execute(sql_fail_departure).fetchone()[0]
     add_banner(Report, v_start_arr, h_start,
-               'CANCELLED FLIGHTS:', nb_fail_flight)
+               'TUNISAIR CANCELLED FLIGHTS:', nb_fail_flight)
 
     type_flights = ['DEPARTURE', 'ARRIVAL']
     sql_operators = ['COUNT', 'MIN', 'MAX', 'AVG']
@@ -126,7 +133,7 @@ def create_daily_png_report(current_time):
     for type_f in type_flights:
         for index_op, sql_op in enumerate(sql_operators):
             query_op = 'COUNT(*)' if sql_op == 'COUNT' else f'{sql_op}({type_f}_DELAY)'
-            query_sql = f'SELECT {query_op} FROM TUNISAIR_FLIGHTS WHERE DEPARTURE_DATE="{str(todays_date)}" AND {type_f}_DELAY<>"0" AND {type_f}_DELAY<>"" AND FLIGHT_STATUS<>"cancelled"'
+            query_sql = f'SELECT {query_op} FROM {sql_table_name} WHERE DEPARTURE_DATE="{str(todays_date)}"  AND {type_f}_DELAY<>"0" AND {type_f}_DELAY<>"" AND FLIGHT_STATUS<>"cancelled"'
             sql_execute_query = cursor.execute(query_sql).fetchone()[0]
             result_fetch = 0 if (sql_execute_query is None) | (
                 sql_execute_query == '') else sql_execute_query
@@ -147,50 +154,59 @@ def create_daily_png_report(current_time):
                        f'{result_fetch}{"M" if sql_op_txt != "NB" else ""}'
                        )
 
-    sql_worse_flight = f'SELECT DEPARTURE_IATA, ARRIVAL_IATA, FLIGHT_NUMBER FROM TUNISAIR_FLIGHTS WHERE DEPARTURE_DATE="{str(todays_date)}" AND ARRIVAL_DELAY="{str(arrival_delayed_max)}" AND FLIGHT_STATUS="landed"'
+    sql_worse_flight = f'''
+    SELECT DEPARTURE_IATA, ARRIVAL_IATA, FLIGHT_NUMBER, AIRLINE
+    FROM {sql_table_name} 
+    WHERE DEPARTURE_DATE="{str(todays_date)}" 
+     
+    AND ARRIVAL_DELAY="{str(arrival_delayed_max)}" 
+    AND FLIGHT_STATUS="landed"
+    '''
     worse_flight = [] if arrival_delayed_max == 0 else cursor.execute(
         sql_worse_flight).fetchone()
     conn.commit()
     conn.close()
-
+    
     # Worse flight
     if arrival_delayed_max > 0:
         airport_worse_dep = worse_flight[0]
         airport_worse_arr = worse_flight[1]
         worse_flight_number = worse_flight[2]
+        worse_airline = airline_name[worse_flight[3]]
+        
         # Title to be added if exist
         w_label, h_label = get_text_dimensions(
-            f'WORST FLIGHT N°: {worse_flight_number}', ImageFont.truetype(path_skyfont, 25))
+            f'WORST FLIGHT: {worse_airline} {worse_flight_number}', ImageFont.truetype(path_skyfont, 20))
         add_banner(Report, (1080-w_label)/2, 340,
-                   f'WORST FLIGHT N°:', f'{worse_flight_number}')
+                   f'WORST FLIGHT:', f'{worse_airline} {worse_flight_number}')
 
         # worse flight in DEP ARRIV
         text_worse = str(
             f'{airport_worse_dep} -----Delay of {str(arrival_delayed_max)}M----> {airport_worse_arr}')
-
+        
         w_value, h_value = get_text_dimensions(
-            text_worse, ImageFont.truetype(path_skyfont, 25))
+            text_worse, ImageFont.truetype(path_skyfont, font_size))
         position_relative = (1080-w_value)/2
         # P is symbol of Plane departure with the Glyph Font
-        Report.text((position_relative-40, 340+h_label+10), 'Q',
-                    font=ImageFont.truetype(path_font_glyph_airport, 25), fill='white')
-        Report.text((position_relative, 340+h_label+10), text_worse,
-                    font=ImageFont.truetype(path_skyfont, 25), fill='white')
+        Report.text((position_relative-40, 340+h_label+15), 'Q',
+                    font=ImageFont.truetype(path_font_glyph_airport, font_size), fill='white')
+        Report.text((position_relative, 340+h_label+15), text_worse,
+                    font=ImageFont.truetype(path_skyfont, font_size), fill='white')
         # Q is symbol of Plane arrival with the Glyph Font
-        Report.text((position_relative + w_value + 10, 340+h_label+10), 'P',
-                    font=ImageFont.truetype(path_font_glyph_airport, 25), fill='white')
+        Report.text((position_relative + w_value + 10, 340+h_label+15), 'P',
+                    font=ImageFont.truetype(path_font_glyph_airport, font_size), fill='white')
     else:
         # Title to be added if exist
         w_label, h_label = get_text_dimensions(
-            f'ALL FLIGHTS ARE ON TIME', ImageFont.truetype(path_skyfont, 25))
+            f'ALL FLIGHTS ARE ON TIME', ImageFont.truetype(path_skyfont, font_size))
         add_banner(Report, (1080-w_label)/2, 340,
                    f'ALL FLIGHTS ARE ON TIME', f'')
         text_worse = str(f'----------')
         w_value, h_value = get_text_dimensions(
-            text_worse, ImageFont.truetype(path_skyfont, 25))
+            text_worse, ImageFont.truetype(path_skyfont, font_size))
         position_relative = (1080-w_value)/2
         Report.text((position_relative, 340+h_label+10), text_worse,
-                    font=ImageFont.truetype(path_skyfont, 25), fill='white')
+                    font=ImageFont.truetype(path_skyfont, font_size), fill='white')
 
     #  Add pandas plot of Cumulated arrival delays
     plot_path_arrival_png, plot_path_departure_png = create_plot_arr_delay_cumulated(
@@ -200,7 +216,7 @@ def create_daily_png_report(current_time):
     os.remove(plot_path_departure_png)
 
     with Image.open(plot_path_arrival_png) as arrival_delay_pic:
-        report_img.paste(arrival_delay_pic, (555, 425))
+        report_img.paste(arrival_delay_pic, (545, 425))
     os.remove(plot_path_arrival_png)
 
     report_img.save(picture_to_save)
