@@ -119,6 +119,10 @@ def create_daily_png_report():
             result_fetch = int(round(result_fetch,0))
             if (sql_op == 'MAX') & (type_f == 'ARRIVAL'):
                 arrival_delayed_max = result_fetch
+            elif (sql_op =='COUNT') & (type_f == 'ARRIVAL'):
+                nb_delays_arr = result_fetch
+            elif (sql_op =='COUNT') & (type_f == 'DEPARTURE'):
+                nb_delays_dep = result_fetch
             v_start = v_start_dep if type_f == 'DEPARTURE' else v_start_arr
             h_start_bytype = h_start+ (40*(index_op+1))
             sql_op_txt = 'NB' if sql_op == 'COUNT' else sql_op
@@ -177,5 +181,5 @@ def create_daily_png_report():
     os.remove(plot_path_arrival_png)
     
     report_img.save(picture_to_save)
-    return picture_to_save
+    return picture_to_save, nb_delays_arr, nb_delays_dep, arrival_delayed_max, text_worse
 
