@@ -1,3 +1,4 @@
+#!/usr/bin/python
 import json
 import os
 # See tutorial: https://www.mattcrampton.com/blog/step_by_step_tutorial_to_post_to_twitter_using_python_part_two-posting_with_photos/

@@ -1,11 +1,14 @@
+#!/usr/bin/python
+import pytz  # timezone
+from datetime import datetime  # Datetime
+import os  # OS
+from cycler import cycler  # To define color cycle
+import matplotlib.pyplot as plt  # plotlib library
+from matplotlib import font_manager as fm  # font manager
 import sqlite3  # The SQL table will be transformed to pandas
 import pandas as pd  # Pandas library
-from matplotlib import font_manager as fm  # font manager
-import matplotlib.pyplot as plt  # plotlib library
-from cycler import cycler  # To define color cycle
-import os  # OS
-from datetime import datetime  # Datetime
-import pytz  # timezone
+import matplotlib
+matplotlib.use('Agg')
 tz = "Africa/Tunis"
 
 
@@ -44,14 +47,13 @@ def get_pic_location(current_time, type_flight):
     return f'{path_report_save}/{current_time.strftime("%d_%m_%Y")}_{type_flight[:3]}_delayreport.png'
 
 
-def create_plot_arr_delay_cumulated():
+def create_plot_arr_delay_cumulated(current_time):
     '''
     Function to create an SQL request and transform the table into pandas
     the pandas table will be pivoted as function of status and then will be plotted
     in a bar chart
     '''
     # todays date
-    current_time = datetime.now().astimezone(pytz.timezone(tz))
     todays_date = current_time.strftime("%d/%m/%Y")
 
     def create_plot(type_flight):
@@ -60,8 +62,6 @@ def create_plot_arr_delay_cumulated():
         # Transform the SQL table to pandas + refactor the types
         df = get_df_sql_data(type_flight, todays_date)
 
-        df["DEPARTURE_DELAY"] = df["DEPARTURE_DELAY"].astype(float)
-        df["ARRIVAL_DELAY"] = df["ARRIVAL_DELAY"].astype(float)
         # Creating the pivot table
         df_ftype_delay = df[
             [
@@ -69,8 +69,10 @@ def create_plot_arr_delay_cumulated():
                 f"{type_flight}_HOUR",
                 "FLIGHT_STATUS"
             ]
-        ]
-        
+        ].fillna(0).replace('', 0)
+        df_ftype_delay[f"{type_flight}_DELAY"] = df_ftype_delay[f"{type_flight}_DELAY"].astype(
+            'float64')
+
         df_ftype_delay = df_ftype_delay.pivot_table(
             values=f'{type_flight}_DELAY',
             index=f'{type_flight}_HOUR',
@@ -78,11 +80,10 @@ def create_plot_arr_delay_cumulated():
             aggfunc='mean'
         ).fillna(0)
 
-
         # Creating the figures
         fig, ax = plt.subplots(
             facecolor='black', figsize=((1080/2)/96, 200/96))
-        
+
         df_ftype_delay.plot(kind='bar',
                             ax=ax,
                             stacked=True,
@@ -110,7 +111,7 @@ def create_plot_arr_delay_cumulated():
         # Axies and ticks
         ax.set_xlabel(None)
         ax.set_ylabel('Minutes')
-        
+
         ax.spines['bottom'].set_color('white')
         ax.spines['left'].set_color('white')
         ax.xaxis.label.set_color('white')

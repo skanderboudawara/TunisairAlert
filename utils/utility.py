@@ -1,3 +1,4 @@
+#!/usr/bin/python
 import re
 from datetime import datetime, timezone, timedelta
 
@@ -17,6 +18,7 @@ def mins_between(d1, d2):
     minutes = c.total_seconds() / 60
     return abs(minutes)
 
+
 def days_between(d1, d2):
     d1 = d1.replace(hour=0, minute=0, second=0, microsecond=0)
     d2 = d2.replace(hour=0, minute=0, second=0, microsecond=0)
@@ -26,6 +28,7 @@ def days_between(d1, d2):
     c = d1 - d2
     days = c.days
     return days
+
 
 def time_compare_message(time_in_between):
     '''

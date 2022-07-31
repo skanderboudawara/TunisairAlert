@@ -1,3 +1,4 @@
+#!/usr/bin/python
 import requests  # APIs
 import os  # Create and organize folders
 import json  # Json manipulations
@@ -73,6 +74,7 @@ def json_location(type_flight, current_time):
     directory_flight_type = f'datasets/{type_flight}/{current_time.strftime("%m")}'
     path_flight_type = os.path.join(
         os.path.abspath(os.curdir), directory_flight_type)
+    print(path_flight_type)
     if not (os.path.isdir(path_flight_type)):
         os.mkdir(path_flight_type)
 
