@@ -3,3 +3,4 @@ token.txt
 .ipynb_checkpoints
 __pycache__
 *.pyc
+post_to_twitter/credential.json
