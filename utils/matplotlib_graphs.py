@@ -97,7 +97,7 @@ def plot_from_to_airport(current_time):
             .replace("TU", "TUNISAIR")
             .replace("AF", "AIR FRANCE")
             .replace("BJ", "NOUVELAIR")
-            .replace("HV", "TRANSAVIA")
+            .replace("TO", "TRANSAVIA")
         )
         df_ftype_delay[f"{type_flight}_DELAY"] = df_ftype_delay[
             f"{type_flight}_DELAY"
@@ -131,7 +131,7 @@ def plot_from_to_airport(current_time):
         # Title
         from_to = "from" if type_flight == "DEPARTURE" else "to"
         ax.set_title(
-            f"AVG delays from {from_airport[:3]} to {to_airport[:3]}",
+            f"AVERAGG DELAY from {from_airport} -> {to_airport}",
             fontproperties=font_prop,
             y=1.2,
         )
@@ -216,7 +216,7 @@ def plot_tunisair_arrival_dep_delays(current_time):
     ax.set_facecolor("black")
     font_prop = get_font_prop("LEDBDREV.TTF")
     # Title
-    ax.set_title("AVG delays of TUNISAIR", fontproperties=font_prop, y=1.2)
+    ax.set_title("TUNISAIR AVERAGE delay", fontproperties=font_prop, y=1.2)
     ax.title.set_fontsize(12)
     ax.title.set_color("orange")
 

@@ -169,7 +169,7 @@ def get_json_dict(json_file, force_upade, type_flight):
             json_flight = json.load(f)
     # Else pull request
     else:
-        effective_airlines = ["TU", "BJ", "AF", "HV"]
+        effective_airlines = ["TU", "BJ", "AF", "TO"]
         response = get_json_api(type_flight, "TUN", effective_airlines)
         json_flight = response.json()
         if json_flight:
