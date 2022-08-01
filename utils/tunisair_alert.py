@@ -2,18 +2,12 @@
 import requests  # APIs
 import os  # Create and organize folders
 import json  # Json manipulations
-from datetime import datetime, timedelta  # datetime
+from datetime import datetime  # datetime
 import pytz  # timezone
-from utils.utility import mins_between, days_between
+from utils.utility import mins_between, days_between, get_airport_country, get_airport_name
 from utils.sql_func import update_table  # SQL interactions
 import backoff
 
-# Adding Airlines
-##################################################
-#f rom pyairports.airports import Airports
-# Code from https://github.com/NICTA/pyairports
-##################################################
-from pyairports.airports import Airports
 
 ##################################################
 # Global variables
@@ -63,7 +57,8 @@ def get_json_api(type_flight, airport_iata, airline_iata=None):
     if _token:
         print('getting json API')
         if airline_iata is not None:
-            airline_iata = '&airline_iata='+airline_iata if isinstance(airline_iata, str) else ''.join(['&airline_iata='+airline for airline in airline_iata])
+            airline_iata = '&airline_iata='+airline_iata if isinstance(
+                airline_iata, str) else ''.join(['&airline_iata='+airline for airline in airline_iata])
         api_request = f'https://airlabs.co/api/v9/schedules?{type_flight[:3]}_iata={airport_iata}{airline_iata}&api_key={_token}'
         print(api_request)
         return requests.get(api_request)
@@ -76,7 +71,6 @@ def json_location(type_flight, current_time):
     directory_flight_type = f'datasets/{type_flight}/{current_time.strftime("%m")}'
     path_flight_type = os.path.join(
         os.path.abspath(os.curdir), directory_flight_type)
-    print(path_flight_type)
     if not (os.path.isdir(path_flight_type)):
         os.mkdir(path_flight_type)
 
@@ -170,16 +164,6 @@ def get_flight_key(flight_number, departure_scheduled):
     return flight_number + '_' + datetime_departure_scheduled.strftime("%d_%m_%Y_%H_%M")
 
 
-def get_airport_name(airport_iata):
-    # I will handle erros if TUNISAIR made some unknown connections
-    # Data enrichment
-    # Convert airport_iata to airport full name
-    try:
-        return Airports().lookup(airport_iata).city + ' ' + Airports().lookup(airport_iata).name
-    except:
-        return 'UNKNOWN'
-
-
 def get_json_dict(json_file, force_upade, type_flight):
     '''
     Return JSON dictionnary
@@ -190,11 +174,14 @@ def get_json_dict(json_file, force_upade, type_flight):
             json_flight = json.load(f)
     # Else pull request
     else:
-        response = get_json_api(type_flight, 'TUN', ['TU','BJ','AF','HV'])
+        tunisian_airprorts = ['TUN', 'NBE', 'DJE',
+                              'MIR', 'SFA', 'TOE', 'GAF', 'GAE']
+        effective_airlines = ['TU', 'BJ', 'AF', 'HV']
+        response = get_json_api(type_flight, 'TUN', effective_airlines)
         json_flight = response.json()
         if json_flight:
             with open(json_file, 'w') as f:
-                json.dump(response.json(), f)
+                json.dump(response.json(), f, indent=4)
     return json_flight
 
 
@@ -237,8 +224,11 @@ def get_flight(type_flight, force_upade=False):
         arrival_IATA = flight['arr_iata']
         departure_scheduled = flight['dep_time']
         arrival_scheduled = flight['arr_time']
+        # Data enrichment
         departure_airport = get_airport_name(departure_IATA)
         arrival_airport = get_airport_name(arrival_IATA)
+        arrival_country = get_airport_country(arrival_IATA)
+        departure_country = get_airport_country(departure_IATA)
 
         # Handling if exist
         # Data cleaning
@@ -269,8 +259,12 @@ def get_flight(type_flight, force_upade=False):
         # Replacing NONE by null text string
         ##################################################
         flight_key = get_flight_key(flight_number, departure_scheduled)
-        flight_extracted = (flight_key, departure_date, arrival_date, flight_number, flight_status, departure_IATA, departure_airport, arrival_IATA, arrival_airport,
-                            departure_scheduled, dep_hour, arrival_scheduled, arr_hour, departure_estimated, arrival_estimated, departure_actual, arrival_actual, departure_delay, arrival_delay,airline)
+        flight_extracted = (flight_key, departure_date, arrival_date, flight_number,
+                            flight_status, departure_IATA, departure_airport, arrival_IATA, arrival_airport,
+                            departure_scheduled, dep_hour, arrival_scheduled, arr_hour,
+                            departure_estimated, arrival_estimated, departure_actual,
+                            arrival_actual, departure_delay, arrival_delay, airline,
+                            arrival_country, departure_country)
         ##################################################
         # Updating the SQL TABLE
         # If the unique key exist => It will be updated

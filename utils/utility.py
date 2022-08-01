@@ -43,3 +43,41 @@ def time_compare_message(time_in_between):
         time_compare = f'late by {str(time_in_between)} minutes'
 
     return time_compare
+
+
+def get_airport_country(airport_iata):
+    # Adding Airlines
+    ##################################################
+    #f rom pyairports.airports import Airports
+    # Code from https://github.com/NICTA/pyairports
+    ##################################################
+    import sys
+    import os
+    sys.path.append(os.path.abspath(os.curdir))
+    from pyairports.airports import Airports
+    # I will handle erros if TUNISAIR made some unknown connections
+    # Data enrichment
+    # Convert airport_iata to airport full name
+    try:
+        return (Airports().lookup(airport_iata).country).upper()
+    except:
+        return 'UNKNOWN'
+
+
+def get_airport_name(airport_iata):
+    # Adding Airlines
+    ##################################################
+    #f rom pyairports.airports import Airports
+    # Code from https://github.com/NICTA/pyairports
+    ##################################################
+    import sys
+    import os
+    sys.path.append(os.path.abspath(os.curdir))
+    from pyairports.airports import Airports
+    # I will handle erros if TUNISAIR made some unknown connections
+    # Data enrichment
+    # Convert airport_iata to airport full name
+    try:
+        return Airports().lookup(airport_iata).city + ' ' + Airports().lookup(airport_iata).name
+    except:
+        return 'UNKNOWN'
