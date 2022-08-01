@@ -6,58 +6,60 @@ from datetime import datetime, timezone, timedelta
 def remove_nonAlpha(str_to_change):
     '''
     Function to remove all non alphanumerical data
+    params
+    @str_to_change : any string -> str
     '''
     return re.sub('[^A-Za-z0-9]', ' ', str_to_change)
 
 
-def mins_between(d1, d2):
+def mins_between(start_date, end_date):
     '''
     function to get how many minutes is in delay
+    params
+    @d1 : date in datetime format -> datetime
+    @d2 : date in datetime format -> datetime
     '''
-    c = d2 - d1
+    c = end_date - start_date
     minutes = c.total_seconds() / 60
-    return abs(minutes)
+    return minutes
 
 
-def days_between(d1, d2):
-    d1 = d1.replace(hour=0, minute=0, second=0, microsecond=0)
-    d2 = d2.replace(hour=0, minute=0, second=0, microsecond=0)
+def days_between(start_date, end_date):
+    '''
+    To give how many days are between days
+    params 
+    @d1 : date in datetime format -> datetime
+    @d2 : date in datetime format -> datetime
+    '''
+    start_date = start_date.replace(hour=0, minute=0, second=0, microsecond=0)
+    end_date = end_date.replace(hour=0, minute=0, second=0, microsecond=0)
     '''
     function to get how many days is between days
     '''
-    c = d1 - d2
+    c = end_date - start_date
     days = c.days
     return days
 
 
-def time_compare_message(time_in_between):
-    '''
-    Function to return a message in function of
-    time_between
-    the on and estimated
-    '''
-    time_compare = ''
-    if (time_in_between == 0):
-        time_compare = 'on time'
-    else:
-        time_compare = f'late by {str(time_in_between)} minutes'
-
-    return time_compare
-
-
 def get_airport_country(airport_iata):
+    '''
     # Adding Airlines
     ##################################################
     #f rom pyairports.airports import Airports
     # Code from https://github.com/NICTA/pyairports
     ##################################################
+    params
+    @airport_iata : the IATA code of the AIRPOT -> str
+    '''
     import sys
     import os
     sys.path.append(os.path.abspath(os.curdir))
     from pyairports.airports import Airports
+    '''
     # I will handle erros if TUNISAIR made some unknown connections
     # Data enrichment
     # Convert airport_iata to airport full name
+    '''
     try:
         return (Airports().lookup(airport_iata).country).upper()
     except:
@@ -65,19 +67,35 @@ def get_airport_country(airport_iata):
 
 
 def get_airport_name(airport_iata):
+    '''
     # Adding Airlines
     ##################################################
     #f rom pyairports.airports import Airports
     # Code from https://github.com/NICTA/pyairports
     ##################################################
+    params
+    @airport_iata : the IATA code of the AIRPOT -> str
+    '''
     import sys
     import os
     sys.path.append(os.path.abspath(os.curdir))
     from pyairports.airports import Airports
+    '''
     # I will handle erros if TUNISAIR made some unknown connections
     # Data enrichment
     # Convert airport_iata to airport full name
+    '''
     try:
         return Airports().lookup(airport_iata).city + ' ' + Airports().lookup(airport_iata).name
     except:
         return 'UNKNOWN'
+
+def hex_to_rgb(value):
+    '''
+    Function to conver HEX color to RGB
+    params
+    @value the HEX value with # like #F000000 -> str
+    '''
+    value = value.lstrip('#')
+    lv = len(value)
+    return tuple(int(value[i:i+lv//3], 16) for i in range(0, lv, lv//3))

@@ -4,14 +4,14 @@ from datetime import datetime  # Datetime
 import os  # OS
 from cycler import cycler  # To define color cycle
 import matplotlib.pyplot as plt  # plotlib library
-from matplotlib import font_manager as fm  # font manager
+from matplotlib import font_manager as fm, markers  # font manager
 import sqlite3  # The SQL table will be transformed to pandas
 import pandas as pd  # Pandas library
 import matplotlib
 matplotlib.use('Agg')
 tz = "Africa/Tunis"
 sql_table_name = "TUN_FLIGHTS"
-#hours = ['00h','01h','02h','03h','04h','05h','06h','07h','08h','09h','10h','11h','12h','13h','14h','15h','16h','17h','18h','19h','20h','21h','22h','23h']
+list_hours = ['00h','01h','02h','03h','04h','05h','06h','07h','08h','09h','10h','11h','12h','13h','14h','15h','16h','17h','18h','19h','20h','21h','22h','23h']
 # Adding Airlines
 # Path of the font and assign the font to prop
 # https://www.1001fonts.com/airport-fonts.html
@@ -19,7 +19,7 @@ sql_table_name = "TUN_FLIGHTS"
 
 def get_font_prop(font_name):
     '''
-    @font_name : name of font as is in fonts folder
+    @font_name : name of font as is in fonts folder -> str
     '''
     fpath = os.path.join(os.path.abspath(os.curdir),
                          f'fonts/{font_name}')
@@ -29,8 +29,8 @@ def get_font_prop(font_name):
 def get_df_sql_data(current_time, type_flight):
     '''
     param
-    @current_time : current time in datetime format
-    @type_flight: DEPARTURE or ARRIVAL
+    @current_time : current time in datetime format -> datetime
+    @type_flight: DEPARTURE or ARRIVAL -> str
     '''
     # todays date
     todays_date = current_time.strftime("%d/%m/%Y")
@@ -52,8 +52,8 @@ def get_df_sql_data(current_time, type_flight):
 def get_pic_location(current_time, name='DELAY', type_flight='DEPARTURE'):
     '''
     param
-    @current_time : current time in datetime format
-    @type_flight: DEPARTURE or ARRIVAL
+    @current_time : current time in datetime format -> datetime
+    @type_flight: DEPARTURE or ARRIVAL -> str
     '''
     # Check the directory if it exists
     directory_report_monthly = f'reports/{current_time.strftime("%m")}'
@@ -72,15 +72,15 @@ def plotFromToAirport(current_time):
     the pandas table will be pivoted as function of status and then will be plotted
     in a bar chart
     Param 
-    @current_time: current ttime datetime format
+    @current_time: current ttime datetime format -> datetime
     '''
 
     def create_plot(type_flight, from_airport, to_airport):
         '''
         param
-        @type_flight : ARRIVAL or DEPARTURE
-        @from_airport: Airport country in english full letters
-        @to_airport: Airport country in english full letter
+        @type_flight : ARRIVAL or DEPARTURE -> str
+        @from_airport: Airport country in english full letters -> str
+        @to_airport: Airport country in english full letters -> str
         '''
         # Transform the SQL table to pandas + refactor the types
         df = get_df_sql_data(current_time, type_flight)
@@ -109,7 +109,7 @@ def plotFromToAirport(current_time):
         # Creating the figures
         fig, ax = plt.subplots(
             facecolor='black', figsize=((1100/2)/96, 160/96))
-
+        
         df_ftype_delay.plot(kind='bar',
                             ax=ax,
                             # https://matplotlib.org/stable/gallery/color/named_colors.html
@@ -128,7 +128,7 @@ def plotFromToAirport(current_time):
                      fontproperties=font_prop, y=1.2)
         ax.title.set_fontsize(12)
         ax.title.set_color('orange')
-
+        
         # legend
         ax.legend(loc='upper center',  bbox_to_anchor=(0.5, 1.25), ncol=3, prop=font_prop,
                   facecolor='black', labelcolor='white', edgecolor='black', handlelength=0.7)
@@ -158,7 +158,7 @@ def plotArrDepDelay(current_time):
     the pandas table will be pivoted as function of status and then will be plotted
     in a bar chart
     Param 
-    @current_time: current ttime datetime format
+    @current_time: current ttime datetime format -> datetime
     '''
     # Transform the SQL table to pandas + refactor the types
     df = get_df_sql_data(current_time, 'DEPARTURE')
@@ -171,7 +171,6 @@ def plotArrDepDelay(current_time):
             "DEPARTURE_HOUR",
         ]
     ]
-
     df_ftype_delay = df_ftype_delay.fillna(0).replace('', 0)
     df_ftype_delay["DEPARTURE_DELAY"] = df_ftype_delay["DEPARTURE_DELAY"].astype(
         'float64')
@@ -180,15 +179,16 @@ def plotArrDepDelay(current_time):
     df_ftype_delay = df_ftype_delay.rename(
         columns={"DEPARTURE_DELAY": "AVG DEP DELAY", "ARRIVAL_DELAY": "AVG ARR DELAY"})
     df_ftype_delay = df_ftype_delay.fillna(0).replace('', 0)
-
+    list_dep = list(df_ftype_delay['DEPARTURE_HOUR'].unique())
     df_ftype_delay = df_ftype_delay.groupby(
         ['DEPARTURE_HOUR']).mean().fillna(0)
     # Creating the figures
     fig, ax = plt.subplots(
         facecolor='black', figsize=((1200)/96, 110/96))
-
+    plt.xticks(range(len(list_dep)), list_dep)
     df_ftype_delay.plot(kind='line',
                         ax=ax,
+                        marker='x',
                         # https://matplotlib.org/stable/gallery/color/named_colors.html
                         color={'AVG DEP DELAY': 'white',
                                'AVG ARR DELAY': 'orange'},
@@ -210,7 +210,7 @@ def plotArrDepDelay(current_time):
     # Axies and ticks
     ax.set_xlabel(None)
     ax.set_ylabel('Minutes')
-
+    
     ax.spines['bottom'].set_color('white')
     ax.spines['left'].set_color('white')
     ax.xaxis.label.set_color('white')

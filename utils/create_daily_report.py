@@ -11,6 +11,7 @@ import sqlite3  # Importing SQLITE 3
 #####################################
 from utils.create_graph_delays import plotFromToAirport, plotArrDepDelay
 
+# CONST
 # Import necessary fonts
 tz = "Africa/Tunis"
 airline_name = {
@@ -19,6 +20,9 @@ airline_name = {
     'BJ': 'NOUVELAIR',
     'HV': 'TRANSAVIA'
 }
+flight_status = ['scheduled', 'cancelled', 'active', 'landed']
+type_flights = ['DEPARTURE', 'ARRIVAL']
+sql_operators = ['MIN', 'MAX', 'AVG']
 font_size = 20
 # https://www.1001fonts.com/airport-fonts.html
 path_skyfont = os.path.join(os.path.abspath(
@@ -34,18 +38,12 @@ sql_table_loc = os.path.join(os.path.abspath(
 sql_table_name = "TUN_FLIGHTS"
 
 
-def hex_to_rgb(value):
-    '''
-    Function to conver HEX color to RGB
-    '''
-    value = value.lstrip('#')
-    lv = len(value)
-    return tuple(int(value[i:i+lv//3], 16) for i in range(0, lv, lv//3))
-
-
 def get_text_dimensions(text_string, font):
     '''
     Get text imensions in pixel
+    params 
+    @text_string : the string that will writtent -> str
+    @font : the pillow imagefont -> ImageFont.truetype
     '''
     # https://stackoverflow.com/a/46220683/9263761
     ascent, descent = font.getmetrics()
@@ -56,25 +54,36 @@ def get_text_dimensions(text_string, font):
     return (text_width, text_height)
 
 
-def add_banner(Report, position_l, position_t, label, value):
+def add_banner(Report, x, y, label, value):
     '''
     Function to create the label and it's value
     the label will be in orange
     the value will be in white
+    params
+    @Report : the report image pillow -> Image
+    @x : the x position -> int
+    @y : the y position -> int
+    @label : the label string will be in orange -> str
+    @value : the value of the label will be in white -> str
     '''
-    Report.text((position_l+10, position_t), label,
+    Report.text((x+10, y), label,
                 font=ImageFont.truetype(path_skyfont_inverted, font_size), fill='black')
     w, h = get_text_dimensions(label, ImageFont.truetype(
         path_skyfont_inverted, font_size))
-    Report.text((position_l+w+10, position_t), str(value),
+    Report.text((x+w+10, y), str(value),
                 font=ImageFont.truetype(path_skyfont, font_size), fill='white')
-    Report.text((position_l+10, position_t), label,
+    Report.text((x+10, y), label,
                 font=ImageFont.truetype(path_skyfont, font_size), fill='orange')
 
     return get_text_dimensions(f'{label} {value}', ImageFont.truetype(path_skyfont, font_size))
 
 
 def get_picture_to_save_loc(current_time):
+    '''
+    To create the dir and prepare the save of the report png
+    params
+    @current_time : the current time -> datetime
+    '''
     directory_report_monthly = f'reports/{current_time.strftime("%m")}'
 
     path_report_save = os.path.join(
@@ -85,19 +94,35 @@ def get_picture_to_save_loc(current_time):
 
 
 def create_daily_png_report(current_time):
+    '''
+    Function to generate the daily report as function of current time
+    params
+    @current_time : the current time -> datetime
+    '''
+
     # Create necessary folders and paths
     todays_date = current_time.strftime("%d/%m/%Y")
-    path_report = os.path.join(os.path.abspath(os.curdir), 'reports')
     picture_to_save = get_picture_to_save_loc(current_time)
-    # Create a white FULL HD picture
     report_img = Image.new('RGB', (1080, 720), color='white')
 
-    # Tunisair LOGO Treatement
-    # Adding Tunisair logo
+    '''
+    ###########################
+    # LOGO BLOCK
+    ###########################
+    '''
     with Image.open('tunisair_alert_logo.png') as tunisair_logo:
         report_img.paste(tunisair_logo, (25, 7))
 
+    '''
+    ###########################
+    # TITLES BLOCKS
+    ###########################
+    '''
+
+    # Draw picture
     Report = ImageDraw.Draw(report_img)
+
+    #Last update hour
     Report.text((55, 60), f'LAST UPDATE AT {current_time.strftime("%H:%M")}', font=ImageFont.truetype(
         path_skyfont, 9), fill='black')
     # Big Title
@@ -106,21 +131,28 @@ def create_daily_png_report(current_time):
     # Subtitle
     Report.text((260, 50), 'SCOPE FROM/TO Tunis-Carthage International Airport',
                 font=ImageFont.truetype(path_skyfont, 15), fill='black')
-
-    # KPI
-    h_start = 80
+    '''
+    ###########################
+    # KPI BLOCKS
+    ###########################
+    '''
+    h_start = 80 #horizontal position
     Report.rectangle((0, h_start, 1080, 720), fill='black')
 
-    # SQL Request
-    h_start = h_start + 15  # Vertical position starting
-    v_start_dep = 15
-    v_start_arr = 580
+    # Positions
+    h_start = h_start + 15  # horizonta  position starting
+    v_start_dep = 15 # vertical position for DEPARTURES
+    v_start_arr = 580 # vertical position for ARRIVALS
+
+    # SQL Requests 
     conn = sqlite3.connect(sql_table_loc)
     cursor = conn.cursor()
 
     w, h = add_banner(Report, v_start_dep, h_start, 'TUNISAIR FLIGHTS', '')
-    flight_status = ['scheduled', 'cancelled', 'active', 'landed']
+
     v_start = v_start_dep + w + 10
+
+    # To get the repartition count by flight status
     for status in flight_status:
         sql_status = f'SELECT COUNT(*) FROM {sql_table_name} WHERE DEPARTURE_DATE="{str(todays_date)}" AND AIRLINE="TU"  AND FLIGHT_STATUS="{status}"'
         count_sql_status = cursor.execute(sql_status).fetchone()[0]
@@ -128,12 +160,11 @@ def create_daily_png_report(current_time):
                           f'{status}:', count_sql_status)
         v_start = v_start + w + 10
 
+    # To prepare the KPI of counting in Departure & Counting in Arrivals
+    # 2 rounded rectangles that will contain the KPIs
     for rounded_start in [v_start_arr, v_start_dep]:
         Report.rounded_rectangle(
             (rounded_start, h_start+35, rounded_start+480, h_start+115), radius=20, outline='orange')
-
-    type_flights = ['DEPARTURE', 'ARRIVAL']
-    sql_operators = ['MIN', 'MAX', 'AVG']
 
     for type_f in type_flights:
         h_start_bytype = h_start + 45
@@ -162,6 +193,8 @@ def create_daily_png_report(current_time):
             w, h = add_banner(Report, v_start, h_start_bytype,
                               f'{sql_op}:', f'{result_fetch}M')
             v_start = v_start + w
+    
+    # Get the information of WORSE Flight 
     sql_worse_flight = f'''
                         SELECT DEPARTURE_IATA, ARRIVAL_IATA, FLIGHT_NUMBER, AIRLINE
                         FROM {sql_table_name} 
@@ -217,13 +250,18 @@ def create_daily_png_report(current_time):
         Report.text((position_relative, h_wors_flight+h_label+10), text_worse,
                     font=ImageFont.truetype(path_skyfont, font_size), fill='white')
 
+    '''
+    ###########################
+    # PLOT BLOCKS
+    ###########################
+    '''
     def past_plots(report_img, x, y, plot_pic):
         '''
         to past plots from matplotlib to the report
-        @report_img the report from PILLOW
-        @x position in x
-        @y position in y
-        @plot_pic the path of the plot picture generated by Matplotlib
+        @report_img the report from PILLOW -> Image
+        @x position in x -> int
+        @y position in y -> int
+        @plot_pic the path of the plot picture generated by Matplotlib -> str
         '''
         with Image.open(plot_pic) as plot_img:
             report_img.paste(plot_img, (x, y))
@@ -242,4 +280,5 @@ def create_daily_png_report(current_time):
         (v_start_dep, 290, 1060, 710), radius=20, outline='orange')
 
     report_img.save(picture_to_save)
+    print(f'Daily report created for {current_time}')
     return picture_to_save, nb_delays_arr, nb_delays_dep, arrival_delayed_max, text_worse
