@@ -170,3 +170,4 @@ credential.json
 /reports/*
 *.pyc
 import_new_db.py
+updateFromFTP.py

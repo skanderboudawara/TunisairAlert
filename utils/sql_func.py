@@ -40,13 +40,26 @@ PATH_SQL_DB = os.path.join(
 # Adding Airlines
 
 
+def execute_sql(sql, fetchmethod=None):
+    conn = sqlite3.connect(PATH_SQL_DB)
+    cursor = conn.cursor()
+    sql_execute = cursor.execute(sql)
+    fetch_sql = sql_execute
+    if fetchmethod == "fetchone":
+        fetch_sql = sql_execute.fetchone()
+    elif fetchmethod == "fetchall":
+        fetch_sql = sql_execute.fetchall()
+    conn.commit()
+    conn.close()
+    return fetch_sql
+
+
 def create_table():
     """
     Function to create the tunisair_delay database
     """
-    conn = sqlite3.connect(PATH_SQL_DB)
-    cursor = conn.cursor()
-    sql = f"""CREATE TABLE  if not exists {SQL_TABLE_NAME} (
+    execute_sql(
+        f"""CREATE TABLE  if not exists {SQL_TABLE_NAME} (
         "ID_FLIGHT" TEXT NOT NULL,
         "DEPARTURE_DATE" TEXT,
         "ARRIVAL_DATE" TEXT,
@@ -71,9 +84,8 @@ def create_table():
         "DEPARTURE_COUNTRY" TEXT,
         PRIMARY KEY("ID_FLIGHT")
     )"""
-    cursor.execute(sql)
-    conn.commit()
-    conn.close()
+    )
+
     return True
 
 
@@ -84,12 +96,9 @@ def insert_in_table(values):
     @values : a tuple of all values to be inserted -> tuple
     """
     if create_table():
-        conn = sqlite3.connect(PATH_SQL_DB)
-        cursor = conn.cursor()
-        sql = f"INSERT INTO {SQL_TABLE_NAME} {str(FLIGHT_TABLE_COLUMNS)} VALUES {str(values)}"
-        cursor.execute(sql)
-        conn.commit()
-        conn.close()
+        execute_sql(
+            f"INSERT INTO {SQL_TABLE_NAME} {str(FLIGHT_TABLE_COLUMNS)} VALUES {str(values)}"
+        )
 
 
 def update_table(key, values):
@@ -104,14 +113,9 @@ def update_table(key, values):
             cross_col = ""
             for index, col in enumerate(FLIGHT_TABLE_COLUMNS):
                 cross_col = cross_col + col + '="' + str(values[index]) + '", '
-            conn = sqlite3.connect(PATH_SQL_DB)
-            cursor = conn.cursor()
-            sql = (
+            execute_sql(
                 f'UPDATE {SQL_TABLE_NAME} SET {cross_col[:-2]} WHERE ID_FLIGHT="{key}"'
             )
-            cursor.execute(sql)
-            conn.commit()
-            conn.close()
         else:
             insert_in_table(values)
 
@@ -123,19 +127,10 @@ def check_key(key):
     @key : the id key -> str
     """
     if create_table():
-        conn = sqlite3.connect(PATH_SQL_DB)
-        cursor = conn.cursor()
-        sql = f'SELECT 1 FROM {SQL_TABLE_NAME} WHERE ID_FLIGHT="{key}"'
-
-        check = cursor.execute(sql)
-        if check.fetchone() is None:
-            conn.commit()
-            conn.close()
-            return False
-        else:
-            conn.commit()
-            conn.close()
-            return True
+        check = execute_sql(
+            f'SELECT 1 FROM {SQL_TABLE_NAME} WHERE ID_FLIGHT="{key}"', "fetchone"
+        )
+        return False if check is None else True
 
 
 def id_keys(condition=""):
@@ -143,13 +138,9 @@ def id_keys(condition=""):
     Function to correct or fill an empty new created column
     """
     if create_table():
-        conn = sqlite3.connect(PATH_SQL_DB)
-        cursor = conn.cursor()
-        sql = f"SELECT ID_FLIGHT FROM {SQL_TABLE_NAME} {condition}"
-        check = cursor.execute(sql)
-        fetch_all = check.fetchall()
-        conn.commit()
-        conn.close()
+        fetch_all = execute_sql(
+            f"SELECT ID_FLIGHT FROM {SQL_TABLE_NAME} {condition}", "fetchall"
+        )
         return [key[0] for key in fetch_all]
 
 
@@ -163,18 +154,15 @@ def modify_column(col_name_input, col_name_output, func):
     """
     if create_table():
         keys = id_keys()
-        conn = sqlite3.connect(PATH_SQL_DB)
-        cursor = conn.cursor()
         for key in keys:
-            values_sql = (
-                f'SELECT {col_name_input} FROM {SQL_TABLE_NAME} WHERE ID_FLIGHT="{key}"'
-            )
-            values = (cursor.execute(values_sql)).fetchone()[0]
+            values = execute_sql(
+                f'SELECT {col_name_input} FROM {SQL_TABLE_NAME} WHERE ID_FLIGHT="{key}"',
+                "fetchone",
+            )[0]
             output = func(values)
-            output_sql = f'UPDATE {SQL_TABLE_NAME} SET {col_name_output}="{output}" WHERE ID_FLIGHT="{key}"'
-            check = cursor.execute(output_sql)
-        conn.commit()
-        conn.close()
+            execute_sql(
+                f'UPDATE {SQL_TABLE_NAME} SET {col_name_output}="{output}" WHERE ID_FLIGHT="{key}"'
+            )
 
 
 def clean_sql_table(datetime_query):
@@ -188,12 +176,12 @@ def clean_sql_table(datetime_query):
         keys = id_keys(f'WHERE DEPARTURE_DATE="{query_date}"')
 
         for key in keys:
-            conn = sqlite3.connect(PATH_SQL_DB)
-            cursor = conn.cursor()
-            values_sql = f'SELECT * FROM {SQL_TABLE_NAME} WHERE ID_FLIGHT="{key}"'
-            values = list(cursor.execute(values_sql).fetchone())
-            conn.commit()
-            conn.close()
+            values = list(
+                execute_sql(
+                    f'SELECT * FROM {SQL_TABLE_NAME} WHERE ID_FLIGHT="{key}"',
+                    "fetchone",
+                )
+            )
             key = values[0]
 
             # datetime_actual, datetime_estimated, datetime_scheduled, flight_status, datetime_delay, text

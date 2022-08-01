@@ -7,13 +7,15 @@ from matplotlib import font_manager as fm, markers  # font manager
 import sqlite3  # The SQL table will be transformed to pandas
 import pandas as pd  # Pandas library
 import matplotlib
+from utils.sql_func import execute_sql
 
 matplotlib.use("Agg")
-SQL_TABLE_NAME = "TUN_FLIGHTS"
+
 
 # Adding Airlines
 # Path of the font and assign the font to prop
 # https://www.1001fonts.com/airport-fonts.html
+SQL_TABLE_NAME = "TUN_FLIGHTS"
 
 
 def get_font_prop(font_name, size_font):
@@ -33,19 +35,14 @@ def get_df_sql_data(current_time, type_flight):
     # todays date
     todays_date = current_time.strftime("%d/%m/%Y")
     # Path of the SQL Table
-    PATH_SQL_DB = os.path.join(
-        os.path.abspath(os.curdir), "datasets/SQL table/tunisair_delay.db"
-    )
-    dat = sqlite3.connect(PATH_SQL_DB)
-    query = dat.execute(
-        f'SELECT * FROM {SQL_TABLE_NAME} WHERE {type_flight}_DATE="{str(todays_date)}" AND FLIGHT_STATUS<>"cancelled"'
-    )
+    sql_df = f'SELECT * FROM {SQL_TABLE_NAME} WHERE {type_flight}_DATE="{str(todays_date)}" AND FLIGHT_STATUS<>"cancelled"'
+    query = execute_sql(sql_df)
+    data = execute_sql(sql_df, "fetchall")
     cols = [column[0] for column in query.description]
 
-    df = pd.DataFrame.from_records(data=query.fetchall(), columns=cols)
+    df = pd.DataFrame.from_records(data=data, columns=cols)
     df = df.convert_dtypes()
-    dat.commit()
-    dat.close()
+
     return df
 
 
@@ -67,7 +64,32 @@ def get_pic_location(current_time, name="DELAY", type_flight="DEPARTURE"):
     return f'{path_report_save}/{current_time.strftime("%d_%m_%Y")}_{type_flight[:3]}_{name}.png'
 
 
-def plot_from_to_airport(current_time):
+def ax_metadata(ax, title, font_prop):
+    # Adjusting the metadata
+    ax.set_facecolor("black")
+    # Title
+
+    ax.set_title(
+        title,
+        fontproperties=font_prop,
+        y=1.2,
+    )
+    ax.title.set_fontsize(12)
+    ax.title.set_color("orange")
+
+    # Axies and ticks
+    ax.set_xlabel(None)
+    ax.set_ylabel("Minutes")
+
+    ax.spines["bottom"].set_color("white")
+    ax.spines["left"].set_color("white")
+    ax.xaxis.label.set_color("white")
+    ax.yaxis.label.set_color("white")
+    ax.tick_params(axis="y", colors="white")
+    ax.tick_params(axis="x", colors="white")
+
+
+def plot_from_to_airport(current_time, type_flight, from_airport, to_airport):
     """
     Function to create an SQL request and transform the table into pandas
     the pandas table will be pivoted as function of status and then will be plotted
@@ -76,105 +98,76 @@ def plot_from_to_airport(current_time):
     @current_time: current ttime datetime format -> datetime
     """
 
-    def create_plot(type_flight, from_airport, to_airport):
-        """
-        param
-        @type_flight : ARRIVAL or DEPARTURE -> str
-        @from_airport: Airport country in english full letters -> str
-        @to_airport: Airport country in english full letters -> str
-        """
-        # Transform the SQL table to pandas + refactor the types
-        df = get_df_sql_data(current_time, type_flight)
-        df = df[
-            (df["ARRIVAL_COUNTRY"] == to_airport)
-            & (df["DEPARTURE_COUNTRY"] == from_airport)
-        ]
-        # Creating the pivot table
-        df_ftype_delay = df[[f"{type_flight}_DELAY", f"{type_flight}_HOUR", "AIRLINE"]]
-        df_ftype_delay = (
-            df_ftype_delay.fillna(0)
-            .replace("", 0)
-            .replace("TU", "TUNISAIR")
-            .replace("AF", "AIR FRANCE")
-            .replace("BJ", "NOUVELAIR")
-            .replace("TO", "TRANSAVIA")
-        )
-        df_ftype_delay[f"{type_flight}_DELAY"] = df_ftype_delay[
-            f"{type_flight}_DELAY"
-        ].astype("float64")
-
-        df_ftype_delay = df_ftype_delay.pivot_table(
-            values=f"{type_flight}_DELAY",
-            index=f"{type_flight}_HOUR",
-            columns="AIRLINE",
-            aggfunc="mean",
-        ).fillna(0)
-
-        df_ftype_delay = df_ftype_delay.reindex(
-            ["TUNISAIR", "AIR FRANCE", "NOUVELAIR", "TRANSAVIA"], axis=1
-        )
-        # Creating the figures
-        fig, ax = plt.subplots(facecolor="black", figsize=((1100 / 2) / 96, 160 / 96))
-
-        df_ftype_delay.plot(
-            kind="bar",
-            ax=ax,
-            # https://matplotlib.org/stable/gallery/color/named_colors.html
-            color={
-                "TUNISAIR": "#D40100",
-                "AIR FRANCE": "white",
-                "NOUVELAIR": "#0054A6",
-                "TRANSAVIA": "#00D56C",
-            },
-        )
-
-        # Adjusting the metadata
-        ax.set_facecolor("black")
-        font_prop = get_font_prop("LEDBDREV.TTF", 8)
-        # Title
-        from_to = "from" if type_flight == "DEPARTURE" else "to"
-        ax.set_title(
-            f"AVERAGG DELAY from {from_airport} -> {to_airport}",
-            fontproperties=font_prop,
-            y=1.2,
-        )
-        ax.title.set_fontsize(12)
-        ax.title.set_color("orange")
-
-        # legend
-        ax.legend(
-            fontsize="x-small",
-            loc="upper center",
-            bbox_to_anchor=(0.5, 1.25),
-            ncol=4,
-            prop=font_prop,
-            facecolor="black",
-            labelcolor="white",
-            edgecolor="black",
-            handlelength=0.7,
-            labelspacing=0.3,
-            handletextpad=0.6,
-        )
-
-        # Axies and ticks
-        ax.set_xlabel(None)
-        ax.set_ylabel("Minutes")
-
-        ax.spines["bottom"].set_color("white")
-        ax.spines["left"].set_color("white")
-        ax.xaxis.label.set_color("white")
-        ax.yaxis.label.set_color("white")
-        ax.tick_params(axis="y", colors="white")
-        ax.tick_params(axis="x", colors="white")
-
-        # Save figure
-        picture_to_save = get_pic_location(current_time, "delayreport", type_flight)
-        fig.savefig(picture_to_save, bbox_inches="tight")
-        return picture_to_save
-
-    return create_plot("ARRIVAL", "FRANCE", "TUNISIA"), create_plot(
-        "DEPARTURE", "TUNISIA", "FRANCE"
+    """
+    param
+    @type_flight : ARRIVAL or DEPARTURE -> str
+    @from_airport: Airport country in english full letters -> str
+    @to_airport: Airport country in english full letters -> str
+    """
+    # Transform the SQL table to pandas + refactor the types
+    df = get_df_sql_data(current_time, type_flight)
+    df = df[
+        (df["ARRIVAL_COUNTRY"] == to_airport)
+        & (df["DEPARTURE_COUNTRY"] == from_airport)
+    ]
+    # Creating the pivot table
+    df_ftype_delay = df[[f"{type_flight}_DELAY", f"{type_flight}_HOUR", "AIRLINE"]]
+    df_ftype_delay = (
+        df_ftype_delay.fillna(0)
+        .replace("", 0)
+        .replace("TU", "TUNISAIR")
+        .replace("AF", "AIR FRANCE")
+        .replace("BJ", "NOUVELAIR")
+        .replace("TO", "TRANSAVIA")
     )
+    df_ftype_delay[f"{type_flight}_DELAY"] = df_ftype_delay[
+        f"{type_flight}_DELAY"
+    ].astype("float64")
+
+    df_ftype_delay = df_ftype_delay.pivot_table(
+        values=f"{type_flight}_DELAY",
+        index=f"{type_flight}_HOUR",
+        columns="AIRLINE",
+        aggfunc="mean",
+    ).fillna(0)
+
+    # Creating the figures
+    fig, ax = plt.subplots(facecolor="black", figsize=((1100 / 2) / 96, 160 / 96))
+
+    df_ftype_delay.plot(
+        kind="bar",
+        alpha=0.7,
+        ax=ax,
+        # https://matplotlib.org/stable/gallery/color/named_colors.html
+        color={
+            "TUNISAIR": "#D40100",
+            "AIR FRANCE": "white",
+            "NOUVELAIR": "#0054A6",
+            "TRANSAVIA": "#00D56C",
+        },
+    )
+
+    font_prop = get_font_prop("LEDBDREV.TTF", 8)
+    # legend
+    ax.legend(
+        fontsize="x-small",
+        loc="upper center",
+        bbox_to_anchor=(0.5, 1.25),
+        ncol=4,
+        prop=font_prop,
+        facecolor="black",
+        labelcolor="white",
+        edgecolor="black",
+        handlelength=0.7,
+        labelspacing=0.3,
+        handletextpad=0.6,
+    )
+
+    ax_metadata(ax, f"AVERAGE DELAY from {from_airport} -> {to_airport}", font_prop)
+    # Save figure
+    picture_to_save = get_pic_location(current_time, "delayreport", type_flight)
+    fig.savefig(picture_to_save, bbox_inches="tight")
+    return picture_to_save
 
 
 def plot_tunisair_arrival_dep_delays(current_time):
@@ -218,13 +211,7 @@ def plot_tunisair_arrival_dep_delays(current_time):
         color={"AVG DEP DELAY": "white", "AVG ARR DELAY": "orange"},
     )
 
-    # Adjusting the metadata
-    ax.set_facecolor("black")
     font_prop = get_font_prop("LEDBDREV.TTF", 10)
-    # Title
-    ax.set_title("TUNISAIR AVERAGE delay", fontproperties=font_prop, y=1.2)
-    ax.title.set_fontsize(12)
-    ax.title.set_color("orange")
 
     # legend
     ax.legend(
@@ -235,16 +222,7 @@ def plot_tunisair_arrival_dep_delays(current_time):
         edgecolor="black",
     )
 
-    # Axies and ticks
-    ax.set_xlabel(None)
-    ax.set_ylabel("Minutes")
-
-    ax.spines["bottom"].set_color("white")
-    ax.spines["left"].set_color("white")
-    ax.xaxis.label.set_color("white")
-    ax.yaxis.label.set_color("white")
-    ax.tick_params(axis="y", colors="white")
-    ax.tick_params(axis="x", colors="white")
+    ax_metadata(ax, f"TUNISAIR AVERAGE delay", font_prop)
 
     # Save figure
     picture_to_save = get_pic_location(current_time, "tunisairperf")
