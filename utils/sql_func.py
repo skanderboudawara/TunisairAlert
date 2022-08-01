@@ -1,25 +1,49 @@
 #!/usr/bin/python
+from utils.utility import get_airport_name
+import sys
 import sqlite3
 import time
 import os
-flight_table_columns = ("ID_FLIGHT", "DEPARTURE_DATE", "ARRIVAL_DATE", "FLIGHT_NUMBER", "FLIGHT_STATUS", "DEPARTURE_IATA", "DEPARTURE_AIRPORT",
-                        "ARRIVAL_IATA", "ARRIVAL_AIRPORT",  "DEPARTURE_SCHEDULED", "DEPARTURE_HOUR",
-                        "ARRIVAL_SCHEDULED", "ARRIVAL_HOUR", "DEPARTURE_ESTIMATED", "ARRIVAL_ESTIMATED", "DEPARTURE_ACTUAL",
-                        "ARRIVAL_ACTUAL", "DEPARTURE_DELAY", "ARRIVAL_DELAY", "AIRLINE", "ARRIVAL_COUNTRY", "DEPARTURE_COUNTRY")
+
+flight_table_columns = (
+    "ID_FLIGHT",
+    "DEPARTURE_DATE",
+    "ARRIVAL_DATE",
+    "FLIGHT_NUMBER",
+    "FLIGHT_STATUS",
+    "DEPARTURE_IATA",
+    "DEPARTURE_AIRPORT",
+    "ARRIVAL_IATA",
+    "ARRIVAL_AIRPORT",
+    "DEPARTURE_SCHEDULED",
+    "DEPARTURE_HOUR",
+    "ARRIVAL_SCHEDULED",
+    "ARRIVAL_HOUR",
+    "DEPARTURE_ESTIMATED",
+    "ARRIVAL_ESTIMATED",
+    "DEPARTURE_ACTUAL",
+    "ARRIVAL_ACTUAL",
+    "DEPARTURE_DELAY",
+    "ARRIVAL_DELAY",
+    "AIRLINE",
+    "ARRIVAL_COUNTRY",
+    "DEPARTURE_COUNTRY",
+)
 
 sql_table_name = "TUN_FLIGHTS"
 sql_table_loc = os.path.join(
-    os.path.abspath(os.curdir), 'datasets/SQL table/tunisair_delay.db')
+    os.path.abspath(os.curdir), "datasets/SQL table/tunisair_delay.db"
+)
 # Adding Airlines
 
 
 def create_table():
-    '''
+    """
     Function to create the tunisair_delay database
-    '''
+    """
     conn = sqlite3.connect(sql_table_loc)
     cursor = conn.cursor()
-    sql = f'''CREATE TABLE  if not exists {sql_table_name} (
+    sql = f"""CREATE TABLE  if not exists {sql_table_name} (
         "ID_FLIGHT" TEXT NOT NULL,
         "DEPARTURE_DATE" TEXT,
         "ARRIVAL_DATE" TEXT,
@@ -43,7 +67,7 @@ def create_table():
         "ARRIVAl_COUNTRY" TEXT,
         "DEPARTURE_COUNTRY" TEXT,
         PRIMARY KEY("ID_FLIGHT")
-    )'''
+    )"""
     cursor.execute(sql)
     conn.commit()
     conn.close()
@@ -51,11 +75,11 @@ def create_table():
 
 
 def insert_in_table(values):
-    '''
+    """
     Function to insert new item in the SQL Table
-    params 
+    params
     @values : a tuple of all values to be inserted -> tuple
-    '''
+    """
     if create_table():
         conn = sqlite3.connect(sql_table_loc)
         cursor = conn.cursor()
@@ -66,20 +90,22 @@ def insert_in_table(values):
 
 
 def update_table(key, values):
-    '''
+    """
     Function to update an item if Table exists & if item exists
-    params 
+    params
     @key is the key id -> str
     @values : a tuple of all the values to be updated -> tuple
-    '''
+    """
     if create_table():
         if check_key(key):
-            cross_col = ''
+            cross_col = ""
             for index, col in enumerate(flight_table_columns):
                 cross_col = cross_col + col + '="' + str(values[index]) + '", '
             conn = sqlite3.connect(sql_table_loc)
             cursor = conn.cursor()
-            sql = f'UPDATE {sql_table_name} SET {cross_col[:-2]} WHERE ID_FLIGHT="{key}"'
+            sql = (
+                f'UPDATE {sql_table_name} SET {cross_col[:-2]} WHERE ID_FLIGHT="{key}"'
+            )
             cursor.execute(sql)
             conn.commit()
             conn.close()
@@ -88,11 +114,11 @@ def update_table(key, values):
 
 
 def check_key(key):
-    '''
+    """
     Function to check if an item exists in a SQL Table
-    params 
+    params
     @key : the id key -> str
-    '''
+    """
     if create_table():
         conn = sqlite3.connect(sql_table_loc)
         cursor = conn.cursor()
@@ -109,14 +135,14 @@ def check_key(key):
             return True
 
 
-def id_keys(condition=''):
-    '''
+def id_keys(condition=""):
+    """
     Function to correct or fill an empty new created column
-    '''
+    """
     if create_table():
         conn = sqlite3.connect(sql_table_loc)
         cursor = conn.cursor()
-        sql = f'SELECT ID_FLIGHT FROM {sql_table_name} {condition}'
+        sql = f"SELECT ID_FLIGHT FROM {sql_table_name} {condition}"
         check = cursor.execute(sql)
         fetch_all = check.fetchall()
         conn.commit()
@@ -125,19 +151,21 @@ def id_keys(condition=''):
 
 
 def modify_column(col_name_input, col_name_output, func):
-    '''
+    """
     Function to correct or fill an empty new created column
-    params 
+    params
     @col_name_input : the column to extract information from -> str
     @col_name_output : the column to modify -> str
     @func : a function that will be applied on @col_name_input and outputed in @col_name_output -> function
-    '''
+    """
     if create_table():
         keys = id_keys()
         conn = sqlite3.connect(sql_table_loc)
         cursor = conn.cursor()
         for key in keys:
-            input_sql = f'SELECT {col_name_input} FROM {sql_table_name} WHERE ID_FLIGHT="{key}"'
+            input_sql = (
+                f'SELECT {col_name_input} FROM {sql_table_name} WHERE ID_FLIGHT="{key}"'
+            )
             input = (cursor.execute(input_sql)).fetchone()[0]
             output = func(input)
             output_sql = f'UPDATE {sql_table_name} SET {col_name_output}="{output}" WHERE ID_FLIGHT="{key}"'
@@ -149,8 +177,10 @@ def modify_column(col_name_input, col_name_output, func):
 def clean_SQL_table(datetime_query):
     import sys
     import os
+
     sys.path.append(os.path.abspath(os.curdir))
-    from utils.tunisair_alert import correct_datetime_info
+    from utils.airlabs_imports import correct_datetime_info
+
     time.sleep(1)
     todays_date = datetime_query.strftime("%d/%m/%Y")
     if create_table():
@@ -166,18 +196,36 @@ def clean_SQL_table(datetime_query):
             conn.close()
             key = input[0]
 
-            #datetime_actual, datetime_estimated, datetime_scheduled, flight_status, datetime_delay, text
-            #dep_hour, departure_date, flight_status, departure_delay
+            # datetime_actual, datetime_estimated, datetime_scheduled, flight_status, datetime_delay, text
+            # dep_hour, departure_date, flight_status, departure_delay
             input[10], input[1], input[4], input[17] = correct_datetime_info(
-                datetime_actual=input[15], datetime_estimated=input[13], datetime_scheduled=input[9], flight_status=input[4], datetime_delay=input[17], text='active')
+                datetime_actual=input[15],
+                datetime_estimated=input[13],
+                datetime_scheduled=input[9],
+                flight_status=input[4],
+                datetime_delay=input[17],
+                text="active",
+            )
 
-            #arr_hour, arrival_date, flight_status, arrival_delay
+            # arr_hour, arrival_date, flight_status, arrival_delay
 
             input[12], input[2], input[4], input[18] = correct_datetime_info(
-                datetime_actual=input[16], datetime_estimated=input[14], datetime_scheduled=input[11], flight_status=input[4], datetime_delay=input[18], text='landed')
+                datetime_actual=input[16],
+                datetime_estimated=input[14],
+                datetime_scheduled=input[11],
+                flight_status=input[4],
+                datetime_delay=input[18],
+                text="landed",
+            )
             input = tuple(input)
 
             update_table(key, input)
 
-    print('cleaning completed')
+    print("cleaning completed")
     time.sleep(1)
+
+
+sys.path.append(os.path.abspath(os.curdir))
+
+modify_column("DEPARTURE_IATA", "DEPARTURE_AIRPORT", get_airport_name)
+modify_column("ARRIVAL_IATA", "ARRIVAL_AIRPORT", get_airport_name)

@@ -5,10 +5,24 @@ from string import ascii_uppercase
 import json
 
 ASCII_UPPERCASE = set(ascii_uppercase)
-Airport = namedtuple('Airport', ['name', 'city', 'country',
-                     'iata', 'icao', 'lat', 'lon', 'alt', 'tz', 'dst', 'tzdb'])
+Airport = namedtuple(
+    "Airport",
+    [
+        "name",
+        "city",
+        "country",
+        "iata",
+        "icao",
+        "lat",
+        "lon",
+        "alt",
+        "tz",
+        "dst",
+        "tzdb",
+    ],
+)
 Other = namedtuple(
-    'Other', ['iata', 'name', 'country', 'subdiv', 'type', 'lat', 'lon'])
+    "Other", ["iata", "name", "country", "subdiv", "type", "lat", "lon"])
 
 # Name       Name of airport. May or may not contain the City name.
 # City       Main city served by airport. May be spelled differently from Name.
@@ -29,8 +43,8 @@ Other = namedtuple(
 # observe DST (eg. AL, HI in the USA, NT, QL in Australia, parts of Canada) are marked incorrectly.
 
 AIRPORT_LIST = json.loads(resource_string(
-    'pyairports', 'data/airport_list.json'))
-OTHER_LIST = json.loads(resource_string('pyairports', 'data/other_list.json'))
+    "pyairports", "data/airport_list.json"))
+OTHER_LIST = json.loads(resource_string("pyairports", "data/other_list.json"))
 
 
 class AirportNotFoundException(Exception):
@@ -38,20 +52,15 @@ class AirportNotFoundException(Exception):
 
 
 class Airports(object):
-
     def __init__(self):
 
-        self.airports = {
-            _[3].upper(): Airport(*_) for _ in AIRPORT_LIST
-        }
+        self.airports = {_[3].upper(): Airport(*_) for _ in AIRPORT_LIST}
 
-        self.other = {
-            _[0].upper(): Other(*_) for _ in OTHER_LIST
-        }
+        self.other = {_[0].upper(): Other(*_) for _ in OTHER_LIST}
 
     @staticmethod
     def _validate(iata):
-        if not isinstance(iata, (str, 'utf-8')):
+        if not isinstance(iata, (str, "utf-8")):
             raise ValueError(
                 "iata must be a string, it is a {0}".format(type(iata)))
         iata = iata.strip().upper()
@@ -74,7 +83,8 @@ class Airports(object):
 
         if not self.is_valid(iata):
             raise AirportNotFoundException(
-                "iata not found in either airport list: {0}".format(iata))
+                "iata not found in either airport list: {0}".format(iata)
+            )
 
         if table is None:
             # Prefer self.airports over self.other
@@ -87,6 +97,7 @@ class Airports(object):
 
 def main():  # pragma: no cover
     from argparse import ArgumentParser
+
     parser = ArgumentParser("Airport lookup by IATA code")
     parser.add_argument("iata", action="store")
     args = parser.parse_args()
