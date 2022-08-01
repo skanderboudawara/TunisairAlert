@@ -1,14 +1,11 @@
 #!/usr/bin/python
 import requests  # APIs
-import os  # Create and organize folders
-import json  # Json manipulations
-from datetime import datetime  # datetime
-import pytz  # timezone
 from utils.utility import (
     mins_between,
-    days_between,
     get_airport_country,
     get_airport_name,
+    TimeAttribute,
+    FileFolderManager,
 )
 from utils.sql_func import update_table  # SQL interactions
 import backoff
@@ -17,7 +14,6 @@ import backoff
 ##################################################
 # Global variables
 ##################################################
-TUNISIA_TZ = "Africa/Tunis"
 # https://airlabs.co
 
 
@@ -25,25 +21,7 @@ def get_token():
     """
     To retreive the token from the token.txt file
     """
-    if not (os.path.exists(os.path.join(os.path.abspath(os.curdir), "token.txt"))):
-        with open(os.path.join(os.path.abspath(os.curdir), "token.txt"), "w") as f:
-            pass
-
-    with open(os.path.join(os.path.abspath(os.curdir), "token.txt")) as f:
-        lines = f.readlines()
-        if len(lines) <= 0:
-            print(
-                "You need to register to airlabs.co and put the token in the token.txt file"
-            )
-            return False
-        _token = lines[0]
-    if (_token == "") | (_token is None):
-        print(
-            "You need to register to airlabs.co and put the token in the token.txt file"
-        )
-        return False
-    else:
-        return _token
+    return FileFolderManager(dir="credentials", name_file="token.txt").read_txt()
 
 
 def fatal_code(e):
@@ -67,35 +45,74 @@ def get_json_api(type_flight, airport_iata, airline_iata=None):
     @airline_iata : LIST of airline IATA codes (List of strings) -> LIST
     """
     _token = get_token()
-    if _token:
-        print("getting json API")
-        if airline_iata is not None:
-            airline_iata = (
-                "&airline_iata=" + airline_iata
-                if isinstance(airline_iata, str)
-                else "".join(["&airline_iata=" + airline for airline in airline_iata])
-            )
-        api_request = f"https://airlabs.co/api/v9/schedules?{type_flight[:3]}_iata={airport_iata}{airline_iata}&api_key={_token}"
-        print(api_request)
-        return requests.get(api_request)
+    if not (_token):
+        print("No token")
+        return
+
+    print("getting json API")
+    if airline_iata is not None:
+        airline_iata = (
+            "&airline_iata=" + airline_iata
+            if isinstance(airline_iata, str)
+            else "".join(["&airline_iata=" + airline for airline in airline_iata])
+        )
+    api_request = f"https://airlabs.co/api/v9/schedules?{type_flight[:3]}_iata={airport_iata}{airline_iata}&api_key={_token}"
+    print(api_request)
+    return requests.get(api_request)
 
 
-def json_location(type_flight, datetime_query):
+def json_folder_and_name(type_flight, datetime_query):
     """
     To get the json file location
     params
     @type_flight : DEPARTURE or ARRIVAL -> STR
     @datetime_query : current datetime -> datetime
     """
-    directory_flight_type = f'datasets/{type_flight}/{datetime_query.strftime("%m")}'
-    path_flight_type = os.path.join(os.path.abspath(os.curdir), directory_flight_type)
-    if not (os.path.isdir(path_flight_type)):
-        os.mkdir(path_flight_type)
+    directory_flight_type = (
+        f"datasets/{type_flight}/{TimeAttribute(datetime_query).month}"
+    )
 
     file_flight_type = (
-        f'{datetime_query.strftime("%d-%m-%Y")}_{type_flight}_flights.json'
+        f"{TimeAttribute(datetime_query).short_under_score}_{type_flight}_flights.json"
     )
-    return f"{path_flight_type}/{file_flight_type}"
+    return directory_flight_type, file_flight_type
+
+
+def get_json_dict(datetime_query, force_upade, type_flight):
+    """
+    Return JSON dictionnary
+    params
+    @json_file : location of the json file -> str
+    @force_update : to force calling the API request -> Boolean
+    @type_flight : DEPARTURE or ARRIVAL -> str
+    """
+
+    directory_flight_type, file_flight_type = json_folder_and_name(
+        type_flight, datetime_query
+    )
+
+    if force_upade:
+        effective_airlines = ["TU", "BJ", "AF", "TO"]
+        response = get_json_api(type_flight, "TUN", effective_airlines)
+        json_flight = response.json()
+        FileFolderManager(
+            dir=directory_flight_type, name_file=file_flight_type
+        ).save_json(dict=json_flight)
+        return json_flight
+    else:
+        json_flight = FileFolderManager(
+            dir=directory_flight_type, name_file=file_flight_type
+        ).read_json()
+        if (json_flight != {}) and (json_flight is not None):
+            if (
+                (json_flight == {})
+                | (not ("response" in json_flight))
+                | (json_flight is None)
+            ):
+                return False
+            return json_flight
+        else:
+            return False
 
 
 def correct_datetime_info(
@@ -122,10 +139,8 @@ def correct_datetime_info(
     @flight_status -> str
     @arrival_delay -> int
     """
-    today_datetime = datetime.now().astimezone(pytz.timezone(TUNISIA_TZ))
-    datetime_datetime_scheduled = datetime.fromisoformat(datetime_scheduled).astimezone(
-        pytz.timezone(TUNISIA_TZ)
-    )
+    today_datetime = TimeAttribute().today
+    datetime_datetime_scheduled = TimeAttribute(datetime_scheduled).datetime
     effective_date = datetime_datetime_scheduled
     flight_status = flight_status
     datetime_delay = (
@@ -134,12 +149,10 @@ def correct_datetime_info(
 
     for date_check in [datetime_estimated, datetime_actual]:
         if (date_check != "") & (date_check is not None):
-            effective_date = datetime.fromisoformat(date_check).astimezone(
-                pytz.timezone(TUNISIA_TZ)
-            )
+            effective_date = TimeAttribute(date_check).datetime
 
-    dat_hour = effective_date.strftime("%H")
-    effective_date_str = effective_date.strftime("%d/%m/%Y")
+    dat_hour = TimeAttribute(effective_date).hour
+    effective_date_str = TimeAttribute(effective_date).dateformat
 
     if effective_date > datetime_datetime_scheduled:
         datetime_delay = mins_between(datetime_datetime_scheduled, effective_date)
@@ -149,33 +162,7 @@ def correct_datetime_info(
 
 
 def get_flight_key(flight_number, departure_scheduled):
-    datetime_departure_scheduled = datetime.fromisoformat(
-        departure_scheduled
-    ).astimezone(pytz.timezone(TUNISIA_TZ))
-    return flight_number + "_" + datetime_departure_scheduled.strftime("%d_%m_%Y_%H_%M")
-
-
-def get_json_dict(json_file, force_upade, type_flight):
-    """
-    Return JSON dictionnary
-    params
-    @json_file : location of the json file -> str
-    @force_update : to force calling the API request -> Boolean
-    @type_flight : DEPARTURE or ARRIVAL -> str
-    """
-    if os.path.isfile(json_file) & ~(force_upade):
-        print("opening file...")
-        with open(json_file) as f:
-            json_flight = json.load(f)
-    # Else pull request
-    else:
-        effective_airlines = ["TU", "BJ", "AF", "TO"]
-        response = get_json_api(type_flight, "TUN", effective_airlines)
-        json_flight = response.json()
-        if json_flight:
-            with open(json_file, "w") as f:
-                json.dump(response.json(), f, indent=4)
-    return json_flight
+    return flight_number + "_" + TimeAttribute(departure_scheduled).full_under_score
 
 
 def get_flights(type_flight, datetime_query, force_upade=False):
@@ -197,18 +184,10 @@ def get_flights(type_flight, datetime_query, force_upade=False):
     """
     # datetime_query = (datetime.now()- timedelta(days=1)).astimezone(pytz.timezone(TUNISIA_TZ)) # To be used for yesterday
 
-    json_file = json_location(type_flight, datetime_query)
-    json_flight = get_json_dict(json_file, force_upade, type_flight)
-
-    if (json_flight == {}) | (not ("response" in json_flight)) | (json_flight is None):
-        print(
-            "You need to register to airlabs.co and put the token in the token.txt file"
-        )
-        print(
-            "be careful you may have reached your limit free plan Airlabs API requests"
-        )
+    json_flight = get_json_dict(datetime_query, force_upade, type_flight)
+    if not (json_flight):
+        print("JSON file is corrupted")
         return
-
     # Get the response data
     real_time_flights = json_flight["response"]
 

@@ -169,5 +169,6 @@ credential.json
 *.json
 /reports/*
 *.pyc
-import_new_db.py
-updateFromFTP.py
+/credential
+credential/
+credential/*

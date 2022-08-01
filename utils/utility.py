@@ -1,8 +1,82 @@
 #!/usr/bin/python
 import re
-from datetime import datetime, timezone, timedelta
 import sys
 import os
+import json
+
+
+class FontsTunisAlert:
+    def __init__(self):
+        self.skyfont = os.path.join(os.path.abspath(os.curdir), "fonts/LEDBDREV.TTF")
+        self.skyfontInverted = os.path.join(
+            os.path.abspath(os.curdir), "fonts/LEDBOARD.TTF"
+        )
+        self.glyphAirport = os.path.join(
+            os.path.abspath(os.curdir), "fonts/GlyphyxOneNF.ttf"
+        )
+
+
+class FileFolderManager:
+    def __init__(self, dir="", name_file=None):
+        self.name_file = name_file
+        self.dir = dir
+        self.local_dir = os.path.join(os.path.abspath(os.curdir), dir)
+
+        if not (os.path.isdir(self.local_dir)):
+            os.mkdir(self.local_dir)
+
+        if name_file:
+            self.file_dir = os.path.join(self.local_dir, name_file)
+            self.file_exist = os.path.exists(self.file_dir)
+
+    def read_txt(self):
+        if self.file_exist:
+            with open(self.file_dir) as f:
+                lines = f.readlines()
+            if len(lines) <= 0:
+                return None
+            return lines[0]
+        else:
+            with open(self.file_dir, "w") as f:
+                pass
+            print(f"file not found, a new one is created at\n{self.file_dir}")
+            return None
+
+    def read_json(self, default={}):
+        if self.file_exist:
+            with open(self.file_dir) as f:
+                return json.load(f)
+        else:
+            print(f"file not found, a new one is created at\n{self.file_dir}")
+            with open(self.file_dir, "w") as f:
+                json.dump(default, f, indent=4)
+            return default
+
+    def save_json(self, dict):
+        with open(self.file_dir, "w") as f:
+            json.dump(dict, f, indent=4)
+
+
+class TimeAttribute:
+    def __init__(self, time_str=None):
+        from datetime import datetime, timedelta
+        import pytz
+
+        TUNISIA_TZ = "Africa/Tunis"
+
+        self.today = datetime.now().astimezone(pytz.timezone(TUNISIA_TZ))
+        self.yesterday = (datetime.now() - timedelta(days=1)).astimezone(
+            pytz.timezone(TUNISIA_TZ)
+        )
+        if time_str:
+            self.datetime = datetime.fromisoformat(str(time_str)).astimezone(
+                pytz.timezone(TUNISIA_TZ)
+            )
+            self.dateformat = self.datetime.strftime("%d/%m/%Y")
+            self.hour = self.datetime.strftime("%H")
+            self.month = self.datetime.strftime("%m")
+            self.full_under_score = self.datetime.strftime("%d_%m_%Y_%H_%M")
+            self.short_under_score = self.datetime.strftime("%d_%m_%Y")
 
 
 def remove_non_alphanumeric(str_to_change):

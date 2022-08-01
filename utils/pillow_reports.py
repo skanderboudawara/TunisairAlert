@@ -1,8 +1,8 @@
 #!/usr/bin/python
 from PIL import Image, ImageDraw, ImageFont  # Importing PILLOW
 import os  # Create and organize folders
-import sqlite3  # Importing SQLITE 3
 from utils.sql_func import execute_sql
+from utils.utility import FontsTunisAlert, FileFolderManager, TimeAttribute
 
 # Adding Airlines
 ######################################
@@ -27,9 +27,7 @@ TYPE_FLIGHTS = ["DEPARTURE", "ARRIVAL"]
 SQL_OPERATORS = ["MIN", "MAX", "AVG"]
 FONT_SIZE = 20
 # https://www.1001fonts.com/airport-fonts.html
-PATH_SKYFONT = os.path.join(os.path.abspath(os.curdir), "fonts/LEDBDREV.TTF")
-PATH_SKYFONT_INVERTED = os.path.join(os.path.abspath(os.curdir), "fonts/LEDBOARD.TTF")
-PATH_GLYPH_AIRPORT = os.path.join(os.path.abspath(os.curdir), "fonts/GlyphyxOneNF.ttf")
+
 
 # SQL Table
 SQL_TABLE_NAME = "TUN_FLIGHTS"
@@ -66,27 +64,27 @@ def add_banner(report, x, y, label, value):
     report.text(
         (x + 10, y),
         label,
-        font=ImageFont.truetype(PATH_SKYFONT_INVERTED, FONT_SIZE),
+        font=ImageFont.truetype(FontsTunisAlert().skyfontInverted, FONT_SIZE),
         fill="black",
     )
     width_text, length_text = get_text_dimensions(
-        label, ImageFont.truetype(PATH_SKYFONT_INVERTED, FONT_SIZE)
+        label, ImageFont.truetype(FontsTunisAlert().skyfontInverted, FONT_SIZE)
     )
     report.text(
         (x + width_text + 10, y),
         str(value),
-        font=ImageFont.truetype(PATH_SKYFONT, FONT_SIZE),
+        font=ImageFont.truetype(FontsTunisAlert().skyfont, FONT_SIZE),
         fill="white",
     )
     report.text(
         (x + 10, y),
         label,
-        font=ImageFont.truetype(PATH_SKYFONT, FONT_SIZE),
+        font=ImageFont.truetype(FontsTunisAlert().skyfont, FONT_SIZE),
         fill="orange",
     )
 
     return get_text_dimensions(
-        f"{label} {value}", ImageFont.truetype(PATH_SKYFONT, FONT_SIZE)
+        f"{label} {value}", ImageFont.truetype(FontsTunisAlert().skyfont, FONT_SIZE)
     )
 
 
@@ -172,7 +170,7 @@ def past_worse_flight(report, max_arrival_delay, h_start, query_date_formatted):
         # Title to be added if exist
         width_label, length_label = get_text_dimensions(
             f"WORST FLIGHT: {worse_airline} {worse_flight_number}",
-            ImageFont.truetype(PATH_SKYFONT, 20),
+            ImageFont.truetype(FontsTunisAlert().skyfont, 20),
         )
         add_banner(
             report,
@@ -188,33 +186,34 @@ def past_worse_flight(report, max_arrival_delay, h_start, query_date_formatted):
         )
 
         width_text, length_text = get_text_dimensions(
-            text_worse_flight, ImageFont.truetype(PATH_SKYFONT, FONT_SIZE)
+            text_worse_flight, ImageFont.truetype(FontsTunisAlert().skyfont, FONT_SIZE)
         )
         position_relative = (1080 - width_text) / 2
         # P is symbol of Plane departure with the Glyph Font
         report.text(
             (position_relative - 40, h_worse_flight + length_label + 15),
             "Q",
-            font=ImageFont.truetype(PATH_GLYPH_AIRPORT, FONT_SIZE),
+            font=ImageFont.truetype(FontsTunisAlert().glyphAirport, FONT_SIZE),
             fill="white",
         )
         report.text(
             (position_relative, h_worse_flight + length_label + 15),
             text_worse_flight,
-            font=ImageFont.truetype(PATH_SKYFONT, FONT_SIZE),
+            font=ImageFont.truetype(FontsTunisAlert().skyfont, FONT_SIZE),
             fill="white",
         )
         # Q is symbol of Plane arrival with the Glyph Font
         report.text(
             (position_relative + width_text + 10, h_worse_flight + length_label + 15),
             "P",
-            font=ImageFont.truetype(PATH_GLYPH_AIRPORT, FONT_SIZE),
+            font=ImageFont.truetype(FontsTunisAlert().glyphAirport, FONT_SIZE),
             fill="white",
         )
     else:
         # Title to be added if exist
         width_label, length_label = get_text_dimensions(
-            f"ALL FLIGHTS ARE ON TIME", ImageFont.truetype(PATH_SKYFONT, FONT_SIZE)
+            f"ALL FLIGHTS ARE ON TIME",
+            ImageFont.truetype(FontsTunisAlert().skyfont, FONT_SIZE),
         )
         add_banner(
             report,
@@ -225,13 +224,13 @@ def past_worse_flight(report, max_arrival_delay, h_start, query_date_formatted):
         )
         text_worse_flight = str(f"----------")
         width_text, length_text = get_text_dimensions(
-            text_worse_flight, ImageFont.truetype(PATH_SKYFONT, FONT_SIZE)
+            text_worse_flight, ImageFont.truetype(FontsTunisAlert().skyfont, FONT_SIZE)
         )
         position_relative = (1080 - width_text) / 2
         report.text(
             (position_relative, h_worse_flight + length_label + 10),
             text_worse_flight,
-            font=ImageFont.truetype(PATH_SKYFONT, FONT_SIZE),
+            font=ImageFont.truetype(FontsTunisAlert().skyfont, FONT_SIZE),
             fill="white",
         )
     return text_worse_flight
@@ -242,21 +241,21 @@ def past_titles(report, datetime_query):
     report.text(
         (55, 60),
         f'LAST UPDATE AT {datetime_query.strftime("%H:%M")}',
-        font=ImageFont.truetype(PATH_SKYFONT, 9),
+        font=ImageFont.truetype(FontsTunisAlert().skyfont, 9),
         fill="black",
     )
     # Big Title
     report.text(
         (260, 10),
         f'TUNISAIR DAILY INGEST {datetime_query.strftime("%a %d %b %Y")}',
-        font=ImageFont.truetype(PATH_SKYFONT, 25),
+        font=ImageFont.truetype(FontsTunisAlert().skyfont, 25),
         fill="black",
     )
     # Subtitle
     report.text(
         (260, 50),
         "SCOPE FROM/TO Tunis-Carthage International Airport",
-        font=ImageFont.truetype(PATH_SKYFONT, 15),
+        font=ImageFont.truetype(FontsTunisAlert().skyfont, 15),
         fill="black",
     )
 
@@ -286,14 +285,10 @@ def get_picture_to_save_loc(datetime_query):
     params
     @datetime_query : the current time -> datetime
     """
-    directory_report_monthly = f'reports/{datetime_query.strftime("%m")}'
-
-    path_report_save = os.path.join(
-        os.path.abspath(os.curdir), directory_report_monthly
-    )
-    if not (os.path.isdir(path_report_save)):
-        os.mkdir(path_report_save)
-    return f'{path_report_save}/{datetime_query.strftime("%d_%m_%Y")}_report.png'
+    return FileFolderManager(
+        dir=f"reports/{TimeAttribute(datetime_query).month}",
+        name_file=f"{TimeAttribute(datetime_query).short_under_score}_report.png",
+    ).file_dir
 
 
 def generate_report(datetime_query):
@@ -304,7 +299,7 @@ def generate_report(datetime_query):
     """
 
     # Create necessary folders and paths
-    query_date_formatted = datetime_query.strftime("%d/%m/%Y")
+    query_date_formatted = TimeAttribute(datetime_query).dateformat
     picture_to_save = get_picture_to_save_loc(datetime_query)
     report_img = Image.new("RGB", (1080, 720), color="white")
 
@@ -313,7 +308,10 @@ def generate_report(datetime_query):
     # LOGO BLOCK
     ###########################
     """
-    with Image.open("tunisair_alert_logo.png") as tunisair_logo:
+
+    with Image.open(
+        FileFolderManager(dir="utils", name_file="tunisair_alert_logo.png").file_dir
+    ) as tunisair_logo:
         report_img.paste(tunisair_logo, (25, 7))
 
     """
@@ -382,7 +380,7 @@ def generate_report(datetime_query):
     ###########################
     """
     report_img.save(picture_to_save)
-    print(f"Daily report created for {datetime_query}")
+    print(f"Daily report created for {TimeAttribute(datetime_query).short_under_score}")
     return (
         picture_to_save,
         nb_delays_arr,

@@ -1,13 +1,12 @@
 #!/usr/bin/python
-from datetime import datetime  # Datetime
 import os  # OS
 from cycler import cycler  # To define color cycle
 import matplotlib.pyplot as plt  # plotlib library
 from matplotlib import font_manager as fm, markers  # font manager
-import sqlite3  # The SQL table will be transformed to pandas
 import pandas as pd  # Pandas library
 import matplotlib
 from utils.sql_func import execute_sql
+from utils.utility import TimeAttribute, FileFolderManager
 
 matplotlib.use("Agg")
 
@@ -33,7 +32,7 @@ def get_df_sql_data(current_time, type_flight):
     @type_flight: DEPARTURE or ARRIVAL -> str
     """
     # todays date
-    todays_date = current_time.strftime("%d/%m/%Y")
+    todays_date = TimeAttribute(current_time).dateformat
     # Path of the SQL Table
     sql_df = f'SELECT * FROM {SQL_TABLE_NAME} WHERE {type_flight}_DATE="{str(todays_date)}" AND FLIGHT_STATUS<>"cancelled"'
     query = execute_sql(sql_df)
@@ -53,15 +52,11 @@ def get_pic_location(current_time, name="DELAY", type_flight="DEPARTURE"):
     @type_flight: DEPARTURE or ARRIVAL -> str
     """
     # Check the directory if it exists
-    directory_report_monthly = f'reports/{current_time.strftime("%m")}'
-    path_report_save = os.path.join(
-        os.path.abspath(os.curdir), directory_report_monthly
-    )
-    if not (os.path.isdir(path_report_save)):
-        os.mkdir(path_report_save)
 
-    # Save picture and return its path
-    return f'{path_report_save}/{current_time.strftime("%d_%m_%Y")}_{type_flight[:3]}_{name}.png'
+    return FileFolderManager(
+        dir=f"reports/{TimeAttribute(current_time).month}",
+        name_file=f"{TimeAttribute(current_time).short_under_score}_{type_flight[:3]}_{name}.png",
+    ).file_dir
 
 
 def ax_metadata(ax, title, font_prop):
@@ -132,7 +127,7 @@ def plot_from_to_airport(current_time, type_flight, from_airport, to_airport):
     ).fillna(0)
 
     # Creating the figures
-    fig, ax = plt.subplots(facecolor="black", figsize=((1100 / 2) / 96, 160 / 96))
+    fig, ax = plt.subplots(facecolor="black", figsize=((1050 / 2) / 96, 160 / 96))
 
     df_ftype_delay.plot(
         kind="bar",
@@ -201,7 +196,7 @@ def plot_tunisair_arrival_dep_delays(current_time):
     list_dep = list(df_ftype_delay["DEPARTURE_HOUR"].unique())
     df_ftype_delay = df_ftype_delay.groupby(["DEPARTURE_HOUR"]).mean().fillna(0)
     # Creating the figures
-    fig, ax = plt.subplots(facecolor="black", figsize=((1200) / 96, 110 / 96))
+    fig, ax = plt.subplots(facecolor="black", figsize=((1150) / 96, 110 / 96))
     plt.xticks(range(len(list_dep)), list_dep)
     df_ftype_delay.plot(
         kind="line",
