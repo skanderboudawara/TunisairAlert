@@ -25,10 +25,10 @@ def import_ftp_sqldb():
 
 
 if __name__ == "__main__":
-    import_ftp_sqldb()
+    # import_ftp_sqldb()
 
-    clean_sql_table(TODAY_DATE)
-    clean_sql_table(YESTERDAY_DATE)
+    # clean_sql_table(TODAY_DATE)
+    # clean_sql_table(YESTERDAY_DATE)
 
     generate_report(TODAY_DATE)
     generate_report(YESTERDAY_DATE)

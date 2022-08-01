@@ -207,7 +207,7 @@ def generate_report(current_time):
         if type_f == "ARRIVAL":
             nb_delays_arr = count_nb
         w, h = add_banner(
-            report, v_start + 40, h_start_bytype, f"DELAYED {type_f}:", f"{count_nb}"
+            report, v_start + 30, h_start_bytype, f"DELAYED {type_f}:", f"{count_nb}"
         )
         h_start_bytype = h_start + 85
 
@@ -347,7 +347,7 @@ def generate_report(current_time):
     plot_h_pos = 470
     past_plots(report_img, v_start_dep, plot_h_pos, path_plot_departure_delays)
     past_plots(report_img, 530, plot_h_pos, path_plot_arrival_delays)
-    report.rounded_rectangle((v_start_dep, 290, 1060, 710), radius=20, outline="orange")
+    report.rounded_rectangle((v_start_dep, 290, 1060, 705), radius=20, outline="orange")
 
     report_img.save(picture_to_save)
     print(f"Daily report created for {current_time}")

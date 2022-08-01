@@ -16,12 +16,12 @@ SQL_TABLE_NAME = "TUN_FLIGHTS"
 # https://www.1001fonts.com/airport-fonts.html
 
 
-def get_font_prop(font_name):
+def get_font_prop(font_name, size_font):
     """
     @font_name : name of font as is in fonts folder -> str
     """
     fpath = os.path.join(os.path.abspath(os.curdir), f"fonts/{font_name}")
-    return fm.FontProperties(fname=fpath)
+    return fm.FontProperties(fname=fpath, size=size_font)
 
 
 def get_df_sql_data(current_time, type_flight):
@@ -110,6 +110,9 @@ def plot_from_to_airport(current_time):
             aggfunc="mean",
         ).fillna(0)
 
+        df_ftype_delay = df_ftype_delay.reindex(
+            ["TUNISAIR", "AIR FRANCE", "NOUVELAIR", "TRANSAVIA"], axis=1
+        )
         # Creating the figures
         fig, ax = plt.subplots(facecolor="black", figsize=((1100 / 2) / 96, 160 / 96))
 
@@ -127,7 +130,7 @@ def plot_from_to_airport(current_time):
 
         # Adjusting the metadata
         ax.set_facecolor("black")
-        font_prop = get_font_prop("LEDBDREV.TTF")
+        font_prop = get_font_prop("LEDBDREV.TTF", 8)
         # Title
         from_to = "from" if type_flight == "DEPARTURE" else "to"
         ax.set_title(
@@ -140,14 +143,17 @@ def plot_from_to_airport(current_time):
 
         # legend
         ax.legend(
+            fontsize="x-small",
             loc="upper center",
             bbox_to_anchor=(0.5, 1.25),
-            ncol=3,
+            ncol=4,
             prop=font_prop,
             facecolor="black",
             labelcolor="white",
             edgecolor="black",
             handlelength=0.7,
+            labelspacing=0.3,
+            handletextpad=0.6,
         )
 
         # Axies and ticks
@@ -214,7 +220,7 @@ def plot_tunisair_arrival_dep_delays(current_time):
 
     # Adjusting the metadata
     ax.set_facecolor("black")
-    font_prop = get_font_prop("LEDBDREV.TTF")
+    font_prop = get_font_prop("LEDBDREV.TTF", 10)
     # Title
     ax.set_title("TUNISAIR AVERAGE delay", fontproperties=font_prop, y=1.2)
     ax.title.set_fontsize(12)
@@ -227,7 +233,6 @@ def plot_tunisair_arrival_dep_delays(current_time):
         facecolor="black",
         labelcolor="white",
         edgecolor="black",
-        handlelength=0.7,
     )
 
     # Axies and ticks
