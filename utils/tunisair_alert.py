@@ -119,7 +119,7 @@ def correct_datetime_info(datetime_actual, datetime_estimated, datetime_schedule
     
     if (effective_date > datetime_datetime_scheduled):
         datetime_delay = mins_between(datetime_datetime_scheduled, effective_date)
-    if (today_datetime > effective_date) & flight_status != 'cancelled':
+    if (today_datetime > effective_date) & (flight_status != 'cancelled'):
         flight_status = text
     return dat_hour+'h', effective_date_str, flight_status, datetime_delay
 

@@ -1,5 +1,6 @@
 #!/usr/bin/python
 import sqlite3
+import time
 import os
 flight_table_columns = ("ID_FLIGHT", "DEPARTURE_DATE", "ARRIVAL_DATE", "FLIGHT_NUMBER", "FLIGHT_STATUS", "DEPARTURE_IATA", "DEPARTURE_AIRPORT",
                         "ARRIVAL_IATA", "ARRIVAL_AIRPORT",  "DEPARTURE_SCHEDULED", "DEPARTURE_HOUR",
@@ -79,13 +80,11 @@ def update_table(key, values):
             conn = sqlite3.connect(sql_table_loc)
             cursor = conn.cursor()
             sql = f'UPDATE {sql_table_name} SET {cross_col[:-2]} WHERE ID_FLIGHT="{key}"'
-            print(sql)
             cursor.execute(sql)
             conn.commit()
             conn.close()
         else:
             insert_in_table(values)
-    
 
 
 def check_key(key):
@@ -98,7 +97,7 @@ def check_key(key):
         conn = sqlite3.connect(sql_table_loc)
         cursor = conn.cursor()
         sql = f'SELECT 1 FROM {sql_table_name} WHERE ID_FLIGHT="{key}"'
-        
+
         check = cursor.execute(sql)
         if check.fetchone() is None:
             conn.commit()
@@ -146,51 +145,39 @@ def modify_column(col_name_input, col_name_output, func):
         conn.commit()
         conn.close()
 
-    
+
 def clean_SQL_table(datetime_query):
     import sys
     import os
     sys.path.append(os.path.abspath(os.curdir))
     from utils.tunisair_alert import correct_datetime_info
+    time.sleep(1)
     todays_date = datetime_query.strftime("%d/%m/%Y")
     if create_table():
-        
+
         keys = id_keys(f'WHERE DEPARTURE_DATE="{todays_date}"')
-        
+
         for key in keys:
             conn = sqlite3.connect(sql_table_loc)
             cursor = conn.cursor()
             input_sql = f'SELECT * FROM {sql_table_name} WHERE ID_FLIGHT="{key}"'
             input = list(cursor.execute(input_sql).fetchone())
-            print('__________')
-            print('before')
-            print(tuple(input))
+            conn.commit()
+            conn.close()
             key = input[0]
 
             #datetime_actual, datetime_estimated, datetime_scheduled, flight_status, datetime_delay, text
-            print('correcting departure')
-            #dep_hour, departure_date, flight_status, departure_delay 
-            input[10], input[1], input[4], input[17]  = correct_datetime_info(
-                datetime_actual=input[15],datetime_estimated=input[13],datetime_scheduled=input[9],flight_status=input[4], datetime_delay=input[17], text='active')
-            
-            print('correcting arrivals')
-            #arr_hour, arrival_date, flight_status, arrival_delay 
-            
-            input[12], input[2], input[4], input[18] = correct_datetime_info(datetime_actual=input[16], datetime_estimated=input[14], datetime_scheduled=input[11], flight_status=input[4], datetime_delay=input[18], text='landed')
-            input = tuple(input)
-            print('after')
-            print(input)
-            print('__________')
-            conn.commit()
-            conn.close()
-        
-            update_table(key, input)
-            print('__________')
+            #dep_hour, departure_date, flight_status, departure_delay
+            input[10], input[1], input[4], input[17] = correct_datetime_info(
+                datetime_actual=input[15], datetime_estimated=input[13], datetime_scheduled=input[9], flight_status=input[4], datetime_delay=input[17], text='active')
 
+            #arr_hour, arrival_date, flight_status, arrival_delay
+
+            input[12], input[2], input[4], input[18] = correct_datetime_info(
+                datetime_actual=input[16], datetime_estimated=input[14], datetime_scheduled=input[11], flight_status=input[4], datetime_delay=input[18], text='landed')
+            input = tuple(input)
+
+            update_table(key, input)
 
     print('cleaning completed')
-
-
-            
-            
-
+    time.sleep(1)
