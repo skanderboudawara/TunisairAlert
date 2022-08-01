@@ -17,7 +17,7 @@ import backoff
 ##################################################
 # Global variables
 ##################################################
-tz = "Africa/Tunis"
+TUNISIA_TZ = "Africa/Tunis"
 # https://airlabs.co
 
 
@@ -88,8 +88,7 @@ def json_location(type_flight, datetime_query):
     @datetime_query : current datetime -> datetime
     """
     directory_flight_type = f'datasets/{type_flight}/{datetime_query.strftime("%m")}'
-    path_flight_type = os.path.join(
-        os.path.abspath(os.curdir), directory_flight_type)
+    path_flight_type = os.path.join(os.path.abspath(os.curdir), directory_flight_type)
     if not (os.path.isdir(path_flight_type)):
         os.mkdir(path_flight_type)
 
@@ -123,29 +122,27 @@ def correct_datetime_info(
     @flight_status -> str
     @arrival_delay -> int
     """
-    today_datetime = datetime.now().astimezone(pytz.timezone(tz))
+    today_datetime = datetime.now().astimezone(pytz.timezone(TUNISIA_TZ))
     datetime_datetime_scheduled = datetime.fromisoformat(datetime_scheduled).astimezone(
-        pytz.timezone(tz)
+        pytz.timezone(TUNISIA_TZ)
     )
     effective_date = datetime_datetime_scheduled
     flight_status = flight_status
     datetime_delay = (
-        datetime_delay if (datetime_delay is not None) & (
-            datetime_delay != "") else 0
+        datetime_delay if (datetime_delay is not None) & (datetime_delay != "") else 0
     )
 
     for date_check in [datetime_estimated, datetime_actual]:
         if (date_check != "") & (date_check is not None):
             effective_date = datetime.fromisoformat(date_check).astimezone(
-                pytz.timezone(tz)
+                pytz.timezone(TUNISIA_TZ)
             )
 
     dat_hour = effective_date.strftime("%H")
     effective_date_str = effective_date.strftime("%d/%m/%Y")
 
     if effective_date > datetime_datetime_scheduled:
-        datetime_delay = mins_between(
-            datetime_datetime_scheduled, effective_date)
+        datetime_delay = mins_between(datetime_datetime_scheduled, effective_date)
     if (today_datetime > effective_date) & (flight_status != "cancelled"):
         flight_status = text
     return dat_hour + "h", effective_date_str, flight_status, datetime_delay
@@ -154,7 +151,7 @@ def correct_datetime_info(
 def get_flight_key(flight_number, departure_scheduled):
     datetime_departure_scheduled = datetime.fromisoformat(
         departure_scheduled
-    ).astimezone(pytz.timezone(tz))
+    ).astimezone(pytz.timezone(TUNISIA_TZ))
     return flight_number + "_" + datetime_departure_scheduled.strftime("%d_%m_%Y_%H_%M")
 
 
@@ -172,8 +169,6 @@ def get_json_dict(json_file, force_upade, type_flight):
             json_flight = json.load(f)
     # Else pull request
     else:
-        tunisian_airprorts = ["TUN", "NBE", "DJE",
-                              "MIR", "SFA", "TOE", "GAF", "GAE"]
         effective_airlines = ["TU", "BJ", "AF", "HV"]
         response = get_json_api(type_flight, "TUN", effective_airlines)
         json_flight = response.json()
@@ -183,7 +178,7 @@ def get_json_dict(json_file, force_upade, type_flight):
     return json_flight
 
 
-def get_flight(type_flight, datetime_query, force_upade=False):
+def get_flights(type_flight, datetime_query, force_upade=False):
     """
     if type_flight = 'departure' then the function will execute the departure function informaton
     else if type_flight = 'arrival' then the function will execute the arrival function information
@@ -200,7 +195,7 @@ def get_flight(type_flight, datetime_query, force_upade=False):
     @type_flight : DEPARTURE or ARRIVAL -> str
     @force_update : to force calling the API or not by default it's false -> Boolean
     """
-    # datetime_query = (datetime.now()- timedelta(days=1)).astimezone(pytz.timezone(tz)) # To be used for yesterday
+    # datetime_query = (datetime.now()- timedelta(days=1)).astimezone(pytz.timezone(TUNISIA_TZ)) # To be used for yesterday
 
     json_file = json_location(type_flight, datetime_query)
     json_flight = get_json_dict(json_file, force_upade, type_flight)
@@ -222,17 +217,17 @@ def get_flight(type_flight, datetime_query, force_upade=False):
         airline = flight["airline_iata"]
         flight_number = flight["flight_iata"]
         flight_status = flight["status"]
-        departure_IATA = flight["dep_iata"]
-        arrival_IATA = flight["arr_iata"]
+        departure_iata = flight["dep_iata"]
+        arrival_iata = flight["arr_iata"]
         departure_scheduled = flight["dep_time"]
         arrival_scheduled = flight["arr_time"]
         """
         # Data enrichment
         """
-        departure_airport = get_airport_name(departure_IATA)
-        arrival_airport = get_airport_name(arrival_IATA)
-        arrival_country = get_airport_country(arrival_IATA)
-        departure_country = get_airport_country(departure_IATA)
+        departure_airport = get_airport_name(departure_iata)
+        arrival_airport = get_airport_name(arrival_iata)
+        arrival_country = get_airport_country(arrival_iata)
+        departure_country = get_airport_country(departure_iata)
         """
         # Handling if exist
         # Data cleaning
@@ -273,7 +268,7 @@ def get_flight(type_flight, datetime_query, force_upade=False):
         # Correction of arrival delay
         ##################################################
         """
-        arr_hour, arrival_date, flight_status, arrival_delay = correct_datetime_info(
+        (arr_hour, arrival_date, flight_status, arrival_delay,) = correct_datetime_info(
             arrival_actual,
             arrival_estimated,
             arrival_scheduled,
@@ -296,9 +291,9 @@ def get_flight(type_flight, datetime_query, force_upade=False):
             arrival_date,
             flight_number,
             flight_status,
-            departure_IATA,
+            departure_iata,
             departure_airport,
-            arrival_IATA,
+            arrival_iata,
             arrival_airport,
             departure_scheduled,
             dep_hour,

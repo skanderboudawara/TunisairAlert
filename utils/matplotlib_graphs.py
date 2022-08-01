@@ -1,5 +1,4 @@
 #!/usr/bin/python
-import pytz  # timezone
 from datetime import datetime  # Datetime
 import os  # OS
 from cycler import cycler  # To define color cycle
@@ -10,34 +9,8 @@ import pandas as pd  # Pandas library
 import matplotlib
 
 matplotlib.use("Agg")
-tz = "Africa/Tunis"
-sql_table_name = "TUN_FLIGHTS"
-list_hours = [
-    "00h",
-    "01h",
-    "02h",
-    "03h",
-    "04h",
-    "05h",
-    "06h",
-    "07h",
-    "08h",
-    "09h",
-    "10h",
-    "11h",
-    "12h",
-    "13h",
-    "14h",
-    "15h",
-    "16h",
-    "17h",
-    "18h",
-    "19h",
-    "20h",
-    "21h",
-    "22h",
-    "23h",
-]
+SQL_TABLE_NAME = "TUN_FLIGHTS"
+
 # Adding Airlines
 # Path of the font and assign the font to prop
 # https://www.1001fonts.com/airport-fonts.html
@@ -60,12 +33,12 @@ def get_df_sql_data(current_time, type_flight):
     # todays date
     todays_date = current_time.strftime("%d/%m/%Y")
     # Path of the SQL Table
-    sql_table_loc = os.path.join(
+    PATH_SQL_DB = os.path.join(
         os.path.abspath(os.curdir), "datasets/SQL table/tunisair_delay.db"
     )
-    dat = sqlite3.connect(sql_table_loc)
+    dat = sqlite3.connect(PATH_SQL_DB)
     query = dat.execute(
-        f'SELECT * FROM {sql_table_name} WHERE {type_flight}_DATE="{str(todays_date)}" AND FLIGHT_STATUS<>"cancelled"'
+        f'SELECT * FROM {SQL_TABLE_NAME} WHERE {type_flight}_DATE="{str(todays_date)}" AND FLIGHT_STATUS<>"cancelled"'
     )
     cols = [column[0] for column in query.description]
 
@@ -94,7 +67,7 @@ def get_pic_location(current_time, name="DELAY", type_flight="DEPARTURE"):
     return f'{path_report_save}/{current_time.strftime("%d_%m_%Y")}_{type_flight[:3]}_{name}.png'
 
 
-def plotFromToAirport(current_time):
+def plot_from_to_airport(current_time):
     """
     Function to create an SQL request and transform the table into pandas
     the pandas table will be pivoted as function of status and then will be plotted
@@ -198,7 +171,7 @@ def plotFromToAirport(current_time):
     )
 
 
-def plotArrDepDelay(current_time):
+def plot_tunisair_arrival_dep_delays(current_time):
     """
     Function to create an SQL request and transform the table into pandas
     the pandas table will be pivoted as function of status and then will be plotted

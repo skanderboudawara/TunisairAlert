@@ -1,9 +1,11 @@
 #!/usr/bin/python
 import re
 from datetime import datetime, timezone, timedelta
+import sys
+import os
 
 
-def remove_nonAlpha(str_to_change):
+def remove_non_alphanumeric(str_to_change):
     """
     Function to remove all non alphanumerical data
     params
@@ -42,6 +44,9 @@ def days_between(start_date, end_date):
 
 
 def get_airport_country(airport_iata):
+    sys.path.append(os.path.abspath(os.curdir))
+    from pyairports.airports import Airports
+
     """
     # Adding Airlines
     ##################################################
@@ -51,11 +56,6 @@ def get_airport_country(airport_iata):
     params
     @airport_iata : the IATA code of the AIRPOT -> str
     """
-    import sys
-    import os
-
-    sys.path.append(os.path.abspath(os.curdir))
-    from pyairports.airports import Airports
 
     """
     # I will handle erros if TUNISAIR made some unknown connections
@@ -63,12 +63,17 @@ def get_airport_country(airport_iata):
     # Convert airport_iata to airport full name
     """
     try:
-        return remove_nonAlpha((Airports().lookup(airport_iata).country).upper())
+        return remove_non_alphanumeric(
+            (Airports().lookup(airport_iata).country).upper()
+        )
     except:
         return "UNKNOWN"
 
 
 def get_airport_name(airport_iata):
+    sys.path.append(os.path.abspath(os.curdir))
+    from pyairports.airports import Airports
+
     """
     # Adding Airlines
     ##################################################
@@ -78,11 +83,6 @@ def get_airport_name(airport_iata):
     params
     @airport_iata : the IATA code of the AIRPOT -> str
     """
-    import sys
-    import os
-
-    sys.path.append(os.path.abspath(os.curdir))
-    from pyairports.airports import Airports
 
     """
     # I will handle erros if TUNISAIR made some unknown connections
@@ -90,7 +90,7 @@ def get_airport_name(airport_iata):
     # Convert airport_iata to airport full name
     """
     try:
-        return remove_nonAlpha((Airports().lookup(airport_iata).name).upper())
+        return remove_non_alphanumeric((Airports().lookup(airport_iata).name).upper())
     except:
         return "UNKNOWN"
 
@@ -103,4 +103,4 @@ def hex_to_rgb(value):
     """
     value = value.lstrip("#")
     lv = len(value)
-    return tuple(int(value[i: i + lv // 3], 16) for i in range(0, lv, lv // 3))
+    return tuple(int(value[i : i + lv // 3], 16) for i in range(0, lv, lv // 3))
