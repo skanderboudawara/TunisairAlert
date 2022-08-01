@@ -2,6 +2,7 @@ Tunisair daily ingestion KPI
 ============
 
 This tool is developed to create a daily ingest report of Tunisair flight performance. 
+
 The report will show:
 - Tunisair made how many arrival and departure delays
 - The min, max, and average delays for departures and arrival
@@ -29,7 +30,7 @@ Whether you use this project, have learned something from it, or just like it, p
 - Each day at 9 a.m Paris/Timezone a tweet will be post on yesterday Tunisair performance
 
 ---
-## Configuratin
+## Configuration
 - You need to grab a Token from airlabs.co and past it into `token.txt' located in the root folder
 - You also need to grab Twitter API codes [See tutorial](https://www.mattcrampton.com/blog/step_by_step_tutorial_to_post_to_twitter_using_python_part_two-posting_with_photos/) and past the information in `credential.json` located in `root/pytwitter/`
 
