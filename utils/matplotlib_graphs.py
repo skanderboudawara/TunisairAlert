@@ -6,26 +6,20 @@ from matplotlib import font_manager as fm, markers  # font manager
 import pandas as pd  # Pandas library
 import matplotlib
 from utils.sql_func import execute_sql
-from utils.utility import TimeAttribute, FileFolderManager
+from utils.utility import TimeAttribute, FileFolderManager, FontsTunisAlert
+from utils.const import SQL_TABLE_NAME
 
 matplotlib.use("Agg")
 
 
-# Adding Airlines
-# Path of the font and assign the font to prop
-# https://www.1001fonts.com/airport-fonts.html
-SQL_TABLE_NAME = "TUN_FLIGHTS"
-
-
-def get_font_prop(font_name, size_font):
+def get_font_prop(font_name: str, size_font: int):
     """
     @font_name : name of font as is in fonts folder -> str
     """
-    fpath = os.path.join(os.path.abspath(os.curdir), f"fonts/{font_name}")
-    return fm.FontProperties(fname=fpath, size=size_font)
+    return fm.FontProperties(fname=font_name, size=size_font)
 
 
-def get_df_sql_data(current_time, type_flight):
+def get_df_sql_data(current_time, type_flight: str):
     """
     param
     @current_time : current time in datetime format -> datetime
@@ -59,7 +53,10 @@ def get_pic_location(current_time, name="DELAY", type_flight="DEPARTURE"):
     ).file_dir
 
 
-def ax_metadata(ax, title, font_prop):
+def ax_metadata(ax, title: str, font_prop):
+    """
+    To adjust the look of the plots
+    """
     # Adjusting the metadata
     ax.set_facecolor("black")
     # Title
@@ -84,7 +81,9 @@ def ax_metadata(ax, title, font_prop):
     ax.tick_params(axis="x", colors="white")
 
 
-def plot_from_to_airport(current_time, type_flight, from_airport, to_airport):
+def plot_from_to_airport(
+    current_time, type_flight: str, from_airport: str, to_airport: str
+):
     """
     Function to create an SQL request and transform the table into pandas
     the pandas table will be pivoted as function of status and then will be plotted
@@ -101,6 +100,9 @@ def plot_from_to_airport(current_time, type_flight, from_airport, to_airport):
     """
     # Transform the SQL table to pandas + refactor the types
     df = get_df_sql_data(current_time, type_flight)
+    if df.empty:
+        print("DataFrame is empty!")
+        return
     df = df[
         (df["ARRIVAL_COUNTRY"] == to_airport)
         & (df["DEPARTURE_COUNTRY"] == from_airport)
@@ -142,7 +144,7 @@ def plot_from_to_airport(current_time, type_flight, from_airport, to_airport):
         },
     )
 
-    font_prop = get_font_prop("LEDBDREV.TTF", 8)
+    font_prop = get_font_prop(FontsTunisAlert().skyfont, 8)
     # legend
     ax.legend(
         fontsize="x-small",
@@ -175,7 +177,11 @@ def plot_tunisair_arrival_dep_delays(current_time):
     """
     # Transform the SQL table to pandas + refactor the types
     df = get_df_sql_data(current_time, "DEPARTURE")
+    if df.empty:
+        print("DataFrame is empty!")
+        return
     df = df[(df["AIRLINE"] == "TU")]
+
     # Creating the pivot table
     df_ftype_delay = df[
         [
@@ -206,7 +212,7 @@ def plot_tunisair_arrival_dep_delays(current_time):
         color={"AVG DEP DELAY": "white", "AVG ARR DELAY": "orange"},
     )
 
-    font_prop = get_font_prop("LEDBDREV.TTF", 10)
+    font_prop = get_font_prop(FontsTunisAlert().skyfont, 10)
 
     # legend
     ax.legend(

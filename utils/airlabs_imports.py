@@ -5,21 +5,18 @@ from utils.utility import (
     get_airport_country,
     get_airport_name,
     TimeAttribute,
+    isNotBlank,
+    isBlank,
     FileFolderManager,
 )
 from utils.sql_func import update_table  # SQL interactions
 import backoff
 
 
-##################################################
-# Global variables
-##################################################
-# https://airlabs.co
-
-
 def get_token():
     """
     To retreive the token from the token.txt file
+    # https://airlabs.co
     """
     return FileFolderManager(dir="credentials", name_file="token.txt").read_txt()
 
@@ -36,7 +33,7 @@ def fatal_code(e):
 @backoff.on_exception(
     backoff.expo, requests.exceptions.RequestException, max_time=300, giveup=fatal_code
 )
-def get_json_api(type_flight, airport_iata, airline_iata=None):
+def get_json_api(type_flight: str, airport_iata: str, airline_iata=""):
     """
     To make the API Request
     params
@@ -45,15 +42,19 @@ def get_json_api(type_flight, airport_iata, airline_iata=None):
     @airline_iata : LIST of airline IATA codes (List of strings) -> LIST
     """
     _token = get_token()
-    if not (_token):
+    if isBlank(_token):
         print("No token")
+        return
+
+    if isBlank(airport_iata):
+        print("IATA airport is mandatory")
         return
 
     print("getting json API")
     if airline_iata is not None:
         airline_iata = (
             "&airline_iata=" + airline_iata
-            if isinstance(airline_iata, str)
+            if (isinstance(airline_iata, str)) & (~(airline_iata.strip()))
             else "".join(["&airline_iata=" + airline for airline in airline_iata])
         )
     api_request = f"https://airlabs.co/api/v9/schedules?{type_flight[:3]}_iata={airport_iata}{airline_iata}&api_key={_token}"
@@ -61,7 +62,7 @@ def get_json_api(type_flight, airport_iata, airline_iata=None):
     return requests.get(api_request)
 
 
-def json_folder_and_name(type_flight, datetime_query):
+def json_folder_and_name(type_flight: str, datetime_query):
     """
     To get the json file location
     params
@@ -78,7 +79,7 @@ def json_folder_and_name(type_flight, datetime_query):
     return directory_flight_type, file_flight_type
 
 
-def get_json_dict(datetime_query, force_upade, type_flight):
+def get_json_dict(datetime_query, force_upade: bool, type_flight: str):
     """
     Return JSON dictionnary
     params
@@ -103,26 +104,24 @@ def get_json_dict(datetime_query, force_upade, type_flight):
         json_flight = FileFolderManager(
             dir=directory_flight_type, name_file=file_flight_type
         ).read_json()
-        if (json_flight != {}) and (json_flight is not None):
-            if (
-                (json_flight == {})
-                | (not ("response" in json_flight))
-                | (json_flight is None)
-            ):
-                return False
+        if (
+            (json_flight != {})
+            & (json_flight is not None)
+            & ("response" in json_flight)
+        ):
             return json_flight
         else:
             return False
 
 
 def correct_datetime_info(
-    datetime_actual,
-    datetime_estimated,
-    datetime_scheduled,
-    flight_status,
-    datetime_delay,
-    text,
-):
+    datetime_actual: str,
+    datetime_estimated: str,
+    datetime_scheduled: str,
+    flight_status: str,
+    datetime_delay: int,
+    text: str,
+) -> tuple:
     """
     Function to correct arrival information
     params:
@@ -143,12 +142,10 @@ def correct_datetime_info(
     datetime_datetime_scheduled = TimeAttribute(datetime_scheduled).datetime
     effective_date = datetime_datetime_scheduled
     flight_status = flight_status
-    datetime_delay = (
-        datetime_delay if (datetime_delay is not None) & (datetime_delay != "") else 0
-    )
+    datetime_delay = datetime_delay if isNotBlank(datetime_delay) else 0
 
     for date_check in [datetime_estimated, datetime_actual]:
-        if (date_check != "") & (date_check is not None):
+        if isNotBlank(date_check):
             effective_date = TimeAttribute(date_check).datetime
 
     dat_hour = TimeAttribute(effective_date).hour
@@ -161,11 +158,14 @@ def correct_datetime_info(
     return dat_hour + "h", effective_date_str, flight_status, datetime_delay
 
 
-def get_flight_key(flight_number, departure_scheduled):
-    return flight_number + "_" + TimeAttribute(departure_scheduled).full_under_score
+def get_flight_key(flight_number: str, departure_scheduled: str) -> str:
+    """
+    To generate the flight key from flight_number & departure_scheduled
+    """
+    return f"{flight_number}_{TimeAttribute(departure_scheduled).full_under_score}"
 
 
-def get_flights(type_flight, datetime_query, force_upade=False):
+def get_flights(type_flight: str, datetime_query, force_upade=False):
     """
     if type_flight = 'departure' then the function will execute the departure function informaton
     else if type_flight = 'arrival' then the function will execute the arrival function information
