@@ -7,6 +7,11 @@ from utils.utility import FileFolderManager
 
 
 def get_authentification_json():
+    """_summary_
+    will get the twitter credential
+    Returns:
+        _type_: the dictionnary of the JSON
+    """
     default_dic = {
         "consumer_key": "REPLACE_THIS_WITH_YOUR_CONSUMER_KEY",
         "consumer_secret": "REPLACE_THIS_WITH_YOUR_CONSUMER_SECRET",
