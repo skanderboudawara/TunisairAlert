@@ -85,11 +85,9 @@ def insert_in_table(values: tuple):
     Args:
         values (tuple): a tuple of all values to be inserted
     """
-
     if create_table():
         execute_sql(
-            f"INSERT INTO {SQL_TABLE_NAME} {str(FLIGHT_TABLE_COLUMNS)} VALUES {str(values)}"
-        )
+            f"INSERT INTO {SQL_TABLE_NAME} {str(FLIGHT_TABLE_COLUMNS)} VALUES {values}")
 
 
 def update_table(key: str, values: tuple):
@@ -124,9 +122,9 @@ def check_key(key: str):
     """
     if create_table():
         check = execute_sql(
-            f'SELECT 1 FROM {SQL_TABLE_NAME} WHERE ID_FLIGHT="{key}"', "fetchone"
-        )
-        return False if check is None else True
+            f'SELECT 1 FROM {SQL_TABLE_NAME} WHERE ID_FLIGHT="{key}"', "fetchone")
+
+        return check is not None
 
 
 def id_keys(condition=""):

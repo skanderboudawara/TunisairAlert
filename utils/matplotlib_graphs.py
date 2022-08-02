@@ -251,7 +251,7 @@ def plot_tunisair_arrival_dep_delays(datetime_query):
         edgecolor="black",
     )
 
-    ax_metadata(ax, f"TUNISAIR AVERAGE delay", font_prop)
+    ax_metadata(ax, "TUNISAIR AVERAGE delay", font_prop)
 
     # Save figure
     picture_to_save = get_pic_location(datetime_query, "tunisairperf")

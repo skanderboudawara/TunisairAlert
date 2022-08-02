@@ -62,11 +62,9 @@ def get_json_api(type_flight: str, airport_iata: str, airline_iata=None):
 
     print("getting json API")
     if airline_iata:
-        airline_iata = (
-            "&airline_iata=" + airline_iata
-            if isinstance(airline_iata, str)
-            else "".join(["&airline_iata=" + airline for airline in airline_iata])
-        )
+        airline_iata = f"&airline_iata={airline_iata}" if isinstance(
+            airline_iata, str) else "".join([f"&airline_iata={airline}" for airline in airline_iata])
+
     else:
         airline_iata = ""
     api_request = f"https://airlabs.co/api/v9/schedules?{type_flight[:3]}_iata={airport_iata}{airline_iata}&api_key={_token}"
@@ -133,14 +131,7 @@ def get_json_dict(datetime_query, force_update: bool, type_flight: str):
             return False
 
 
-def correct_datetime_info(
-    datetime_actual: str,
-    datetime_estimated: str,
-    datetime_scheduled: str,
-    flight_status: str,
-    datetime_delay: int,
-    text: str,
-) -> tuple:
+def correct_datetime_info(datetime_actual: str, datetime_estimated: str, datetime_scheduled: str, flight_status: str, datetime_delay: int, text: str) -> tuple:
     """_summary_
 
     Args:
@@ -159,20 +150,17 @@ def correct_datetime_info(
     effective_date = datetime_datetime_scheduled
     flight_status = flight_status
     datetime_delay = datetime_delay if isNotBlank(datetime_delay) else 0
-
     for date_check in [datetime_estimated, datetime_actual]:
         if isNotBlank(date_check):
             effective_date = TimeAttribute(date_check).datetime
-
     dat_hour = TimeAttribute(effective_date).hour
     effective_date_str = TimeAttribute(effective_date).dateformat
-
     if effective_date > datetime_datetime_scheduled:
         datetime_delay = mins_between(
             datetime_datetime_scheduled, effective_date)
     if (today_datetime > effective_date) & (flight_status != "cancelled"):
         flight_status = text
-    return dat_hour + "h", effective_date_str, flight_status, datetime_delay
+    return f"{dat_hour}h", effective_date_str, flight_status, datetime_delay
 
 
 def get_flight_key(flight_number: str, departure_scheduled: str) -> str:

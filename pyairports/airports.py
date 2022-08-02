@@ -64,7 +64,7 @@ class Airports(object):
             raise ValueError(
                 "iata must be a string, it is a {0}".format(type(iata)))
         iata = iata.strip().upper()
-        if not len(iata) == 3:
+        if len(iata) != 3:
             raise ValueError("iata must be three characters")
         return iata
 

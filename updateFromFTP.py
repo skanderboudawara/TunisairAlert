@@ -21,7 +21,7 @@ def import_ftp_sqldb():
     ftp = ftplib.FTP(ftp_json["ip_adress"])
     ftp.login(ftp_json["login"], ftp_json["password"])
     ftp.cwd(path)
-    ftp.retrbinary("RETR " + filename, open(PATH_SQL_DB, "wb").write)
+    ftp.retrbinary(f"RETR {filename}", open(PATH_SQL_DB, "wb").write)
     ftp.quit()
 
     print("FTP DB imported")

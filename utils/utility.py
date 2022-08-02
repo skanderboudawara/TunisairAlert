@@ -46,16 +46,16 @@ class FileFolderManager:
         if self.file_exist:
             with open(self.file_dir) as f:
                 lines = f.readlines()
-            if len(lines) <= 0:
-                return None
-            return lines[0]
+            return None if len(lines) <= 0 else lines[0]
         else:
             with open(self.file_dir, "w") as f:
                 pass
             print(f"file not found, a new one is created at\n{self.file_dir}")
             return None
 
-    def read_json(self, default={}):
+    def read_json(self, default=None):
+        if default is None:
+            default = {}
         if self.file_exist:
             with open(self.file_dir) as f:
                 return json.load(f)
@@ -149,8 +149,7 @@ def mins_between(start_date, end_date):
     """
     start_date
     c = end_date - start_date
-    minutes = c.total_seconds() / 60
-    return minutes
+    return c.total_seconds() / 60
 
 
 def days_between(start_date, end_date):
@@ -186,12 +185,9 @@ def get_airport_country(airport_iata: str) -> str:
     """
     sys.path.append(os.path.abspath(os.curdir))
     from pyairports.airports import Airports
-
     try:
-        return remove_non_alphanumeric(
-            (Airports().lookup(airport_iata).country).upper()
-        )
-    except:
+        return remove_non_alphanumeric(Airports().lookup(airport_iata).country.upper())
+    except Exception:
         return "UNKNOWN"
 
 
@@ -210,10 +206,9 @@ def get_airport_name(airport_iata: str) -> str:
     """
     sys.path.append(os.path.abspath(os.curdir))
     from pyairports.airports import Airports
-
     try:
-        return remove_non_alphanumeric((Airports().lookup(airport_iata).name).upper())
-    except:
+        return remove_non_alphanumeric(Airports().lookup(airport_iata).name.upper())
+    except Exception:
         return "UNKNOWN"
 
 
