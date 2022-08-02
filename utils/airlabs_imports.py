@@ -14,18 +14,24 @@ import backoff
 
 
 def get_token():
-    """
+    """_summary_
     To retreive the token from the token.txt file
-    # https://airlabs.co
+    # Create an account here https://airlabs.co
+    Returns:
+        _type_: will return the Token value found in token.txt
     """
     return FileFolderManager(dir="credentials", name_file="token.txt").read_txt()
 
 
 def fatal_code(e):
-    """
+    """_summary_
     Fatal code of response backoff
-    params
-    @e : error value response
+
+    Args:
+        e (_type_): response
+
+    Returns:
+        _type_: error value response
     """
     return 400 <= e.response.status_code < 500
 
@@ -34,12 +40,16 @@ def fatal_code(e):
     backoff.expo, requests.exceptions.RequestException, max_time=300, giveup=fatal_code
 )
 def get_json_api(type_flight: str, airport_iata: str, airline_iata=None):
-    """
+    """_summary_
     To make the API Request
-    params
-    @type_flight : DEPARTURE or ARRIVAL -> STR
-    @airport_iata : IATA code of airport -> STR
-    @airline_iata : LIST of airline IATA codes (List of strings) -> LIST
+
+    Args:
+        type_flight (str): DEPARTURE or ARRIVAL
+        airport_iata (str): IATA code of airport
+        airline_iata (_type_, optional): LIST of airline IATA codes (List of strings). Defaults to None.
+
+    Returns:
+        _type_: the JSON pulled from the API
     """
     _token = get_token()
     if isBlank(_token):
@@ -65,11 +75,14 @@ def get_json_api(type_flight: str, airport_iata: str, airline_iata=None):
 
 
 def json_folder_and_name(type_flight: str, datetime_query):
-    """
+    """_summary_
     To get the json file location
-    params
-    @type_flight : DEPARTURE or ARRIVAL -> STR
-    @datetime_query : current datetime -> datetime
+    Args:
+        type_flight (str): DEPARTURE or ARRIVA
+        datetime_query (_type_): datetime used for queries
+
+    Returns:
+        _type_: will return the directory of the JSON file and it's file name
     """
     directory_flight_type = (
         f"datasets/{type_flight}/{TimeAttribute(datetime_query).month}"
@@ -82,12 +95,16 @@ def json_folder_and_name(type_flight: str, datetime_query):
 
 
 def get_json_dict(datetime_query, force_upade: bool, type_flight: str):
-    """
+    """_summary_
     Return JSON dictionnary
-    params
-    @json_file : location of the json file -> str
-    @force_update : to force calling the API request -> Boolean
-    @type_flight : DEPARTURE or ARRIVAL -> str
+
+    Args:
+        datetime_query (_type_): location of the json file
+        force_upade (bool): to force calling the API request
+        type_flight (str): DEPARTURE or ARRIVAL
+
+    Returns:
+        _type_: will return the dictionnary out of the JSON file
     """
 
     directory_flight_type, file_flight_type = json_folder_and_name(
@@ -124,21 +141,18 @@ def correct_datetime_info(
     datetime_delay: int,
     text: str,
 ) -> tuple:
-    """
-    Function to correct arrival information
-    params:
-    @datetime_query : current time in datetime -> datetime
-    @arrival_actual : actual arrival time -> str
-    @arrival_estimated : estiated arrival time -> str
-    @arrival_scheduled : scheduled arrival time -> str
-    @flight_status : 'scheduled', 'cancelled', 'active', 'landed' -> str
-    @arrival_delay : arrival delay -> int
+    """_summary_
 
-    output
-    @arr_hour -> str
-    @arrival_date -> str
-    @flight_status -> str
-    @arrival_delay -> int
+    Args:
+        datetime_actual (str): actual datetime time
+        datetime_estimated (str): estimated datetime time
+        datetime_scheduled (str): scheduled datetime time
+        flight_status (str): 'scheduled', 'cancelled', 'active', 'landed'
+        datetime_delay (int): datetime delays
+        text (str): the text to put once datetime is compared to actual date
+
+    Returns:
+        tuple: (datetime_hour, real_datetime, actual_flight_stauts, real_delay)
     """
     today_datetime = TimeAttribute().today
     datetime_datetime_scheduled = TimeAttribute(datetime_scheduled).datetime
@@ -161,28 +175,25 @@ def correct_datetime_info(
 
 
 def get_flight_key(flight_number: str, departure_scheduled: str) -> str:
-    """
+    """_summary_
     To generate the flight key from flight_number & departure_scheduled
+    Args:
+        flight_number (str): the flight number
+        departure_scheduled (str): the departure scheduled
+
+    Returns:
+        str: the SQL unique ID key
     """
     return f"{flight_number}_{TimeAttribute(departure_scheduled).full_under_score}"
 
 
 def get_flights(type_flight: str, datetime_query, force_upade=False):
-    """
-    if type_flight = 'departure' then the function will execute the departure function informaton
-    else if type_flight = 'arrival' then the function will execute the arrival function information
-
-    The aim of this function is to pull request from Airlabs API the information needed on Tunisair
-    To correct the delay timing
-    To store the information on SQL Tables
-
-    Since I'm subscribed to a free plan I'm limited to 1000 request per month
-    That's why I am saving the files in JSON files.
-
-    The main goal is to have 1 file / day / Month
-    params
-    @type_flight : DEPARTURE or ARRIVAL -> str
-    @force_update : to force calling the API or not by default it's false -> Boolean
+    """_summary_
+    get the flight regarding the datetime_query and the type of flight
+    Args:
+        type_flight (str): DEPARTURE or ARRIVAL
+        datetime_query (_type_): the datetime to do a query with
+        force_upade (bool, optional): to force calling the API or not. Defaults to False.
     """
     # datetime_query = (datetime.now()- timedelta(days=1)).astimezone(pytz.timezone(TUNISIA_TZ)) # To be used for yesterday
 
@@ -202,17 +213,15 @@ def get_flights(type_flight: str, datetime_query, force_upade=False):
         arrival_iata = flight["arr_iata"]
         departure_scheduled = flight["dep_time"]
         arrival_scheduled = flight["arr_time"]
-        """
+
         # Data enrichment
-        """
         departure_airport = get_airport_name(departure_iata)
         arrival_airport = get_airport_name(arrival_iata)
         arrival_country = get_airport_country(arrival_iata)
         departure_country = get_airport_country(departure_iata)
-        """
+
         # Handling if exist
         # Data cleaning
-        """
         departure_estimated = (
             flight["dep_estimated"] if "dep_estimated" in flight else ""
         )
@@ -223,14 +232,13 @@ def get_flights(type_flight: str, datetime_query, force_upade=False):
         arrival_delay = flight["delayed"] if "delayed" in flight else 0
         departure_delay = 0 if departure_delay is None else int(departure_delay)
         arrival_delay = 0 if arrival_delay is None else int(arrival_delay)
-        """
+
         ##################################################
         # Data Cleaning
         # I have seen that the  flight status and delays are sometimes wrong and needs to be corrected
         # Correction of landing
         # correction of departure delay
         ##################################################
-        """
 
         (
             dep_hour,
@@ -245,11 +253,9 @@ def get_flights(type_flight: str, datetime_query, force_upade=False):
             departure_delay,
             "active",
         )
-        """
         ##################################################
         # Correction of arrival delay
         ##################################################
-        """
         (arr_hour, arrival_date, flight_status, arrival_delay,) = correct_datetime_info(
             arrival_actual,
             arrival_estimated,
@@ -259,13 +265,11 @@ def get_flights(type_flight: str, datetime_query, force_upade=False):
             "landed",
         )
 
-        """
         ##################################################
         # Data to be injected in the SQL
         # The Flight_number _ FULL DATE will be my unique key
         # Replacing NONE by null text string
         ##################################################
-        """
         flight_key = get_flight_key(flight_number, departure_scheduled)
         flight_extracted = (
             flight_key,
@@ -291,12 +295,11 @@ def get_flights(type_flight: str, datetime_query, force_upade=False):
             arrival_country,
             departure_country,
         )
-        """
         ##################################################
         # Updating the SQL TABLE
         # If the unique key exist => It will be updated
         # Else it will be created
         ##################################################
-        # """
+
         update_table(flight_key, flight_extracted)
     print("Import completed")

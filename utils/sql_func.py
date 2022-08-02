@@ -17,11 +17,17 @@ PATH_SQL_DB = FileFolderManager(
 
 
 def execute_sql(sql, fetchmethod=None):
-    """
+    """_summary_
     Function to execute and SQL and return
     - The query
     - Or Fetchone
     - or FetchAll
+    Args:
+        sql (_type_): the SQL code
+        fetchmethod (_type_, optional): the fetch method. Defaults to None.
+
+    Returns:
+        _type_: the query or the fetch
     """
     conn = sqlite3.connect(PATH_SQL_DB)
     cursor = conn.cursor()
@@ -37,8 +43,10 @@ def execute_sql(sql, fetchmethod=None):
 
 
 def create_table():
-    """
+    """_summary_
     Function to create the tunisair_delay database
+    Returns:
+        _type_: True if the table exist or have been created
     """
     execute_sql(
         f"""CREATE TABLE  if not exists {SQL_TABLE_NAME} (
@@ -72,11 +80,12 @@ def create_table():
 
 
 def insert_in_table(values: tuple):
-    """
+    """_summary_
     Function to insert new item in the SQL Table
-    params
-    @values : a tuple of all values to be inserted -> tuple
+    Args:
+        values (tuple): a tuple of all values to be inserted
     """
+
     if create_table():
         execute_sql(
             f"INSERT INTO {SQL_TABLE_NAME} {str(FLIGHT_TABLE_COLUMNS)} VALUES {str(values)}"
@@ -84,11 +93,12 @@ def insert_in_table(values: tuple):
 
 
 def update_table(key: str, values: tuple):
-    """
+    """_summary_
     Function to update an item if Table exists & if item exists
-    params
-    @key is the key id -> str
-    @values : a tuple of all the values to be updated -> tuple
+
+    Args:
+        key (str): is the key id
+        values (tuple): a tuple of all the values to be updated
     """
     if create_table():
         if check_key(key):
@@ -103,10 +113,14 @@ def update_table(key: str, values: tuple):
 
 
 def check_key(key: str):
-    """
+    """_summary_
     Function to check if an item exists in a SQL Table
-    params
-    @key : the id key -> str
+
+    Args:
+        key (str): the id key
+
+    Returns:
+        _type_: return true or false if key found
     """
     if create_table():
         check = execute_sql(
@@ -116,8 +130,13 @@ def check_key(key: str):
 
 
 def id_keys(condition=""):
-    """
+    """_summary_
     Function to correct or fill an empty new created column
+    Args:
+        condition (str, optional): to create a condition of Where if needed. Defaults to "".
+
+    Returns:
+        _type_: list of all Key (meeting condition optional)
     """
     if create_table():
         fetch_all = execute_sql(
@@ -127,12 +146,13 @@ def id_keys(condition=""):
 
 
 def modify_column(col_name_input: str, col_name_output: str, func):
-    """
+    """_summary_
     Function to correct or fill an empty new created column
-    params
-    @col_name_input : the column to extract information from -> str
-    @col_name_output : the column to modify -> str
-    @func : a function that will be applied on @col_name_input and outputed in @col_name_output -> function
+
+    Args:
+        col_name_input (str):  the column to extract information from
+        col_name_output (str): the column to modify
+        func (_type_): a function that will be applied on @col_name_input and outputed in @col_name_output
     """
     if create_table():
         keys = id_keys()
@@ -148,10 +168,12 @@ def modify_column(col_name_input: str, col_name_output: str, func):
 
 
 def clean_sql_table(datetime_query):
-    """
+    """_summary_
     Function to clean SQL table and re adjust all the time information
     dep_hour, departure_date, flight_status, departure_delay
     arr_hour, arrival_date, flight_status, arrival_delay
+    Args:
+        datetime_query (_type_): datetime of query
     """
     sys.path.append(os.path.abspath(os.curdir))
     from utils.airlabs_imports import correct_datetime_info
@@ -165,6 +187,14 @@ def clean_sql_table(datetime_query):
         cols = [column[1] for column in pragma]
 
         def column_index(col_name):
+            """_summary_
+            get Column name and return its position
+            Args:
+                col_name (_type_): column nuame
+
+            Returns:
+                _type_: the int position
+            """
             return cols.index(col_name)
 
         for key in keys:

@@ -13,20 +13,30 @@ matplotlib.use("Agg")
 
 
 def get_font_prop(font_name: str, size_font: int):
-    """
-    @font_name : name of font as is in fonts folder -> str
+    """_summary_
+    to get the matplotlib font_manager properties
+    Args:
+        font_name (str): the font name found in FontsTunisAlert class
+        size_font (int): the size of the font
+
+    Returns:
+        _type_: convert a font path to font_manager properties
     """
     return fm.FontProperties(fname=font_name, size=size_font)
 
 
-def get_df_sql_data(current_time, type_flight: str):
-    """
-    param
-    @current_time : current time in datetime format -> datetime
-    @type_flight: DEPARTURE or ARRIVAL -> str
+def get_df_sql_data(datetime_query, type_flight: str):
+    """_summary_
+    to convert a SQL table to a dataframe pandas
+    Args:
+        datetime_query (_type_): datetime of query
+        type_flight (str): DEPARTURE or ARRIVAL
+
+    Returns:
+        _type_: a pandas dataframe out of SQL table
     """
     # todays date
-    todays_date = TimeAttribute(current_time).dateformat
+    todays_date = TimeAttribute(datetime_query).dateformat
     # Path of the SQL Table
     sql_df = f'SELECT * FROM {SQL_TABLE_NAME} WHERE {type_flight}_DATE="{str(todays_date)}" AND FLIGHT_STATUS<>"cancelled"'
     query = execute_sql(sql_df)
@@ -39,23 +49,32 @@ def get_df_sql_data(current_time, type_flight: str):
     return df
 
 
-def get_pic_location(current_time, name="DELAY", type_flight="DEPARTURE"):
-    """
-    param
-    @current_time : current time in datetime format -> datetime
-    @type_flight: DEPARTURE or ARRIVAL -> str
+def get_pic_location(datetime_query, name="DELAY", type_flight="DEPARTURE"):
+    """_summary_
+    to retreive where the plot should be stored temporarly
+    Args:
+        datetime_query (_type_): the date for query
+        name (str, optional): the name of file . Defaults to "DELAY".
+        type_flight (str, optional): DEPARTURE or ARRIVAL. Defaults to "DEPARTURE".
+
+    Returns:
+        _type_: the path location of the temporary save file
     """
     # Check the directory if it exists
 
     return FileFolderManager(
-        dir=f"reports/{TimeAttribute(current_time).month}",
-        name_file=f"{TimeAttribute(current_time).short_under_score}_{type_flight[:3]}_{name}.png",
+        dir=f"reports/{TimeAttribute(datetime_query).month}",
+        name_file=f"{TimeAttribute(datetime_query).short_under_score}_{type_flight[:3]}_{name}.png",
     ).file_dir
 
 
 def ax_metadata(ax, title: str, font_prop):
-    """
+    """_summary_
     To adjust the look of the plots
+    Args:
+        ax (_type_): the matplotlib plot
+        title (str): the title of the plot
+        font_prop (_type_): the font properties
     """
     # Adjusting the metadata
     ax.set_facecolor("black")
@@ -82,24 +101,24 @@ def ax_metadata(ax, title: str, font_prop):
 
 
 def plot_from_to_airport(
-    current_time, type_flight: str, from_airport: str, to_airport: str
+    datetime_query, type_flight: str, from_airport: str, to_airport: str
 ):
-    """
+    """_summary_
     Function to create an SQL request and transform the table into pandas
     the pandas table will be pivoted as function of status and then will be plotted
     in a bar chart
-    Param
-    @current_time: current ttime datetime format -> datetime
-    """
+    Args:
+        datetime_query (_type_): datetime used for query
+        type_flight (str): DEPARTURE or ARRIVAL
+        from_airport (str): departure airport
+        to_airport (str): arrival airport
 
-    """
-    param
-    @type_flight : ARRIVAL or DEPARTURE -> str
-    @from_airport: Airport country in english full letters -> str
-    @to_airport: Airport country in english full letters -> str
+    Returns:
+        _type_: A bar chart plot with average delay as function of each Airline
+        calculated through departure airport to arrival airport
     """
     # Transform the SQL table to pandas + refactor the types
-    df = get_df_sql_data(current_time, type_flight)
+    df = get_df_sql_data(datetime_query, type_flight)
     if df.empty:
         print("DataFrame is empty!")
         return
@@ -162,21 +181,23 @@ def plot_from_to_airport(
 
     ax_metadata(ax, f"AVERAGE DELAY from {from_airport} -> {to_airport}", font_prop)
     # Save figure
-    picture_to_save = get_pic_location(current_time, "delayreport", type_flight)
+    picture_to_save = get_pic_location(datetime_query, "delayreport", type_flight)
     fig.savefig(picture_to_save, bbox_inches="tight")
     return picture_to_save
 
 
-def plot_tunisair_arrival_dep_delays(current_time):
-    """
-    Function to create an SQL request and transform the table into pandas
-    the pandas table will be pivoted as function of status and then will be plotted
-    in a bar chart
-    Param
-    @current_time: current ttime datetime format -> datetime
+def plot_tunisair_arrival_dep_delays(datetime_query):
+    """_summary_
+    To create a line chart of AVG departure and arrival delays of Tunisair
+    Args:
+        datetime_query (_type_): datetime used for query
+
+    Returns:
+        _type_: a matplotlib plot of the evolution of Tunisair delays for departure
+        and arrivals
     """
     # Transform the SQL table to pandas + refactor the types
-    df = get_df_sql_data(current_time, "DEPARTURE")
+    df = get_df_sql_data(datetime_query, "DEPARTURE")
     if df.empty:
         print("DataFrame is empty!")
         return
@@ -226,6 +247,6 @@ def plot_tunisair_arrival_dep_delays(current_time):
     ax_metadata(ax, f"TUNISAIR AVERAGE delay", font_prop)
 
     # Save figure
-    picture_to_save = get_pic_location(current_time, "tunisairperf")
+    picture_to_save = get_pic_location(datetime_query, "tunisairperf")
     fig.savefig(picture_to_save, bbox_inches="tight")
     return picture_to_save

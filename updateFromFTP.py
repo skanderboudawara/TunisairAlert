@@ -6,6 +6,10 @@ from utils.utility import TimeAttribute, FileFolderManager
 
 
 def import_ftp_sqldb():
+    """_summary_
+    To pull the SQL Table from the FTP server
+    Credentials are saved in /credentials/ftp.json
+    """
     ftp_json = FileFolderManager(dir="credentials", name_file="ftp.json").read_json()
     path = ftp_json["path"]
     filename = ftp_json["file_name"]
@@ -21,6 +25,11 @@ def import_ftp_sqldb():
 
 
 if __name__ == "__main__":
+    """_summary_
+    Pull the new SQL table from the FTP server
+    Clean tables of today and yesterday
+    Generate report of today and yesterday
+    """
 
     TODAY_DATE = TimeAttribute().today
     YESTERDAY_DATE = TimeAttribute().yesterday

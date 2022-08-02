@@ -7,6 +7,12 @@ from utils.utility import TimeAttribute
 
 # Adding Airlines
 if __name__ == "__main__":
+    """_summary_
+    Clean the SQL table of yesterday
+    Generate the report of yesterday
+    Generate the tweet text
+    Post the twitter at 9.am
+    """
     YESTERDAY_DATE = TimeAttribute().yesterday
 
     clean_sql_table(YESTERDAY_DATE)
