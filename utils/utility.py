@@ -12,7 +12,8 @@ class FontsTunisAlert:
     """
 
     def __init__(self):
-        self.skyfont = os.path.join(os.path.abspath(os.curdir), "fonts/LEDBDREV.TTF")
+        self.skyfont = os.path.join(
+            os.path.abspath(os.curdir), "fonts/LEDBDREV.TTF")
         self.skyfontInverted = os.path.join(
             os.path.abspath(os.curdir), "fonts/LEDBOARD.TTF"
         )
@@ -175,7 +176,7 @@ def get_airport_country(airport_iata: str) -> str:
     Adding Airlines
     from pyairports.airports import Airports
     Code from https://github.com/NICTA/pyairports
-    I will handle erros if TUNISAIR made some unknown connections
+    I will handle errors if TUNISAIR made some unknown connections
     Data enrichment
     Args:
         airport_iata (str): AIRPORT iata code
@@ -199,7 +200,7 @@ def get_airport_name(airport_iata: str) -> str:
     Adding Airlines
     from pyairports.airports import Airports
     Code from https://github.com/NICTA/pyairports
-    I will handle erros if TUNISAIR made some unknown connections
+    I will handle errors if TUNISAIR made some unknown connections
     Data enrichment
     Args:
         airport_iata (str): AIRPORT iata code
@@ -219,7 +220,7 @@ def get_airport_name(airport_iata: str) -> str:
 def hex_to_rgb(value: str) -> tuple:
     """_summary_
     https://www.codespeedy.com/create-random-hex-color-code-in-python/
-    Function to conver HEX color to RGB
+    Function to convert HEX color to RGB
     Args:
         value (str): the hex code
 
@@ -228,4 +229,4 @@ def hex_to_rgb(value: str) -> tuple:
     """
     value = value.lstrip("#")
     lv = len(value)
-    return tuple(int(value[i : i + lv // 3], 16) for i in range(0, lv, lv // 3))
+    return tuple(int(value[i: i + lv // 3], 16) for i in range(0, lv, lv // 3))

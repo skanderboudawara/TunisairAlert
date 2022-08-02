@@ -1,5 +1,6 @@
 import ftplib
 import os
+from sqlite3 import adapt
 from utils.pillow_reports import generate_report
 from utils.sql_func import clean_sql_table
 from utils.utility import TimeAttribute, FileFolderManager
@@ -10,7 +11,8 @@ def import_ftp_sqldb():
     To pull the SQL Table from the FTP server
     Credentials are saved in /credentials/ftp.json
     """
-    ftp_json = FileFolderManager(dir="credentials", name_file="ftp.json").read_json()
+    ftp_json = FileFolderManager(
+        dir="credentials", name_file="ftp.json").read_json()
     path = ftp_json["path"]
     filename = ftp_json["file_name"]
     PATH_SQL_DB = FileFolderManager(
@@ -21,6 +23,7 @@ def import_ftp_sqldb():
     ftp.cwd(path)
     ftp.retrbinary("RETR " + filename, open(PATH_SQL_DB, "wb").write)
     ftp.quit()
+
     print("FTP DB imported")
 
 
@@ -30,11 +33,10 @@ if __name__ == "__main__":
     Clean tables of today and yesterday
     Generate report of today and yesterday
     """
-
     TODAY_DATE = TimeAttribute().today
     YESTERDAY_DATE = TimeAttribute().yesterday
 
-    # import_ftp_sqldb()
+    import_ftp_sqldb()
 
     clean_sql_table(TODAY_DATE)
     clean_sql_table(YESTERDAY_DATE)

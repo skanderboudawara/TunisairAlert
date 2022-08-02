@@ -27,7 +27,7 @@ def get_font_prop(font_name: str, size_font: int):
 
 def get_df_sql_data(datetime_query, type_flight: str):
     """_summary_
-    to convert a SQL table to a dataframe pandas
+    to convert a SQL table to a database pandas
     Args:
         datetime_query (_type_): datetime of query
         type_flight (str): DEPARTURE or ARRIVAL
@@ -51,7 +51,7 @@ def get_df_sql_data(datetime_query, type_flight: str):
 
 def get_pic_location(datetime_query, name="DELAY", type_flight="DEPARTURE"):
     """_summary_
-    to retreive where the plot should be stored temporarly
+    to retrieve where the plot should be stored temporarily
     Args:
         datetime_query (_type_): the date for query
         name (str, optional): the name of file . Defaults to "DELAY".
@@ -127,7 +127,8 @@ def plot_from_to_airport(
         & (df["DEPARTURE_COUNTRY"] == from_airport)
     ]
     # Creating the pivot table
-    df_ftype_delay = df[[f"{type_flight}_DELAY", f"{type_flight}_HOUR", "AIRLINE"]]
+    df_ftype_delay = df[[f"{type_flight}_DELAY",
+                         f"{type_flight}_HOUR", "AIRLINE"]]
     df_ftype_delay = (
         df_ftype_delay.fillna(0)
         .replace("", 0)
@@ -148,7 +149,8 @@ def plot_from_to_airport(
     ).fillna(0)
 
     # Creating the figures
-    fig, ax = plt.subplots(facecolor="black", figsize=((1050 / 2) / 96, 160 / 96))
+    fig, ax = plt.subplots(
+        facecolor="black", figsize=((1050 / 2) / 96, 160 / 96))
 
     df_ftype_delay.plot(
         kind="bar",
@@ -179,9 +181,11 @@ def plot_from_to_airport(
         handletextpad=0.6,
     )
 
-    ax_metadata(ax, f"AVERAGE DELAY from {from_airport} -> {to_airport}", font_prop)
+    ax_metadata(
+        ax, f"AVERAGE DELAY from {from_airport} -> {to_airport}", font_prop)
     # Save figure
-    picture_to_save = get_pic_location(datetime_query, "delayreport", type_flight)
+    picture_to_save = get_pic_location(
+        datetime_query, "delay_report", type_flight)
     fig.savefig(picture_to_save, bbox_inches="tight")
     return picture_to_save
 
@@ -215,13 +219,16 @@ def plot_tunisair_arrival_dep_delays(datetime_query):
     df_ftype_delay["DEPARTURE_DELAY"] = df_ftype_delay["DEPARTURE_DELAY"].astype(
         "float64"
     )
-    df_ftype_delay["ARRIVAL_DELAY"] = df_ftype_delay["ARRIVAL_DELAY"].astype("float64")
+    df_ftype_delay["ARRIVAL_DELAY"] = df_ftype_delay["ARRIVAL_DELAY"].astype(
+        "float64")
     df_ftype_delay = df_ftype_delay.rename(
-        columns={"DEPARTURE_DELAY": "AVG DEP DELAY", "ARRIVAL_DELAY": "AVG ARR DELAY"}
+        columns={"DEPARTURE_DELAY": "AVG DEP DELAY",
+                 "ARRIVAL_DELAY": "AVG ARR DELAY"}
     )
     df_ftype_delay = df_ftype_delay.fillna(0).replace("", 0)
     list_dep = list(df_ftype_delay["DEPARTURE_HOUR"].unique())
-    df_ftype_delay = df_ftype_delay.groupby(["DEPARTURE_HOUR"]).mean().fillna(0)
+    df_ftype_delay = df_ftype_delay.groupby(
+        ["DEPARTURE_HOUR"]).mean().fillna(0)
     # Creating the figures
     fig, ax = plt.subplots(facecolor="black", figsize=((1150) / 96, 110 / 96))
     plt.xticks(range(len(list_dep)), list_dep)

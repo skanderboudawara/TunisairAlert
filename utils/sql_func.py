@@ -152,7 +152,7 @@ def modify_column(col_name_input: str, col_name_output: str, func):
     Args:
         col_name_input (str):  the column to extract information from
         col_name_output (str): the column to modify
-        func (_type_): a function that will be applied on @col_name_input and outputed in @col_name_output
+        func (_type_): a function that will be applied on @col_name_input and outputted in @col_name_output
     """
     if create_table():
         keys = id_keys()
@@ -183,14 +183,15 @@ def clean_sql_table(datetime_query):
     if create_table():
 
         keys = id_keys(f'WHERE DEPARTURE_DATE="{query_date}"')
-        pragma = execute_sql(f"PRAGMA table_info({SQL_TABLE_NAME})", "fetchall")
+        pragma = execute_sql(
+            f"PRAGMA table_info({SQL_TABLE_NAME})", "fetchall")
         cols = [column[1] for column in pragma]
 
         def column_index(col_name):
             """_summary_
             get Column name and return its position
             Args:
-                col_name (_type_): column nuame
+                col_name (_type_): column name
 
             Returns:
                 _type_: the int position

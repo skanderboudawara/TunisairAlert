@@ -15,7 +15,7 @@ import backoff
 
 def get_token():
     """_summary_
-    To retreive the token from the token.txt file
+    To retrieve the token from the token.txt file
     # Create an account here https://airlabs.co
     Returns:
         _type_: will return the Token value found in token.txt
@@ -78,7 +78,7 @@ def json_folder_and_name(type_flight: str, datetime_query):
     """_summary_
     To get the json file location
     Args:
-        type_flight (str): DEPARTURE or ARRIVA
+        type_flight (str): DEPARTURE or ARRIVAL
         datetime_query (_type_): datetime used for queries
 
     Returns:
@@ -94,24 +94,24 @@ def json_folder_and_name(type_flight: str, datetime_query):
     return directory_flight_type, file_flight_type
 
 
-def get_json_dict(datetime_query, force_upade: bool, type_flight: str):
+def get_json_dict(datetime_query, force_update: bool, type_flight: str):
     """_summary_
-    Return JSON dictionnary
+    Return JSON dictionary
 
     Args:
         datetime_query (_type_): location of the json file
-        force_upade (bool): to force calling the API request
+        force_update (bool): to force calling the API request
         type_flight (str): DEPARTURE or ARRIVAL
 
     Returns:
-        _type_: will return the dictionnary out of the JSON file
+        _type_: will return the dictionary out of the JSON file
     """
 
     directory_flight_type, file_flight_type = json_folder_and_name(
         type_flight, datetime_query
     )
 
-    if force_upade:
+    if force_update:
         effective_airlines = ["TU", "BJ", "AF", "TO"]
         response = get_json_api(type_flight, "TUN", effective_airlines)
         json_flight = response.json()
@@ -152,7 +152,7 @@ def correct_datetime_info(
         text (str): the text to put once datetime is compared to actual date
 
     Returns:
-        tuple: (datetime_hour, real_datetime, actual_flight_stauts, real_delay)
+        tuple: (datetime_hour, real_datetime, actual_flight_status, real_delay)
     """
     today_datetime = TimeAttribute().today
     datetime_datetime_scheduled = TimeAttribute(datetime_scheduled).datetime
@@ -168,7 +168,8 @@ def correct_datetime_info(
     effective_date_str = TimeAttribute(effective_date).dateformat
 
     if effective_date > datetime_datetime_scheduled:
-        datetime_delay = mins_between(datetime_datetime_scheduled, effective_date)
+        datetime_delay = mins_between(
+            datetime_datetime_scheduled, effective_date)
     if (today_datetime > effective_date) & (flight_status != "cancelled"):
         flight_status = text
     return dat_hour + "h", effective_date_str, flight_status, datetime_delay
@@ -187,17 +188,17 @@ def get_flight_key(flight_number: str, departure_scheduled: str) -> str:
     return f"{flight_number}_{TimeAttribute(departure_scheduled).full_under_score}"
 
 
-def get_flights(type_flight: str, datetime_query, force_upade=False):
+def get_flights(type_flight: str, datetime_query, force_update=False):
     """_summary_
     get the flight regarding the datetime_query and the type of flight
     Args:
         type_flight (str): DEPARTURE or ARRIVAL
         datetime_query (_type_): the datetime to do a query with
-        force_upade (bool, optional): to force calling the API or not. Defaults to False.
+        force_update (bool, optional): to force calling the API or not. Defaults to False.
     """
     # datetime_query = (datetime.now()- timedelta(days=1)).astimezone(pytz.timezone(TUNISIA_TZ)) # To be used for yesterday
 
-    json_flight = get_json_dict(datetime_query, force_upade, type_flight)
+    json_flight = get_json_dict(datetime_query, force_update, type_flight)
     if not (json_flight):
         print("JSON file is corrupted")
         return
@@ -230,7 +231,8 @@ def get_flights(type_flight: str, datetime_query, force_upade=False):
         arrival_actual = flight["arr_actual"] if "arr_actual" in flight else ""
         departure_delay = flight["delayed"] if "delayed" in flight else 0
         arrival_delay = flight["delayed"] if "delayed" in flight else 0
-        departure_delay = 0 if departure_delay is None else int(departure_delay)
+        departure_delay = 0 if departure_delay is None else int(
+            departure_delay)
         arrival_delay = 0 if arrival_delay is None else int(arrival_delay)
 
         ##################################################
