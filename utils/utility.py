@@ -6,6 +6,7 @@ import json
 
 
 class FontsTunisAlert:
+    # https://www.1001fonts.com/airport-fonts.html
     def __init__(self):
         self.skyfont = os.path.join(os.path.abspath(os.curdir), "fonts/LEDBDREV.TTF")
         self.skyfontInverted = os.path.join(
@@ -73,13 +74,25 @@ class TimeAttribute:
                 pytz.timezone(TUNISIA_TZ)
             )
             self.dateformat = self.datetime.strftime("%d/%m/%Y")
+            self.full_hour = self.datetime.strftime("%H:%M")
+            self.full_day = self.datetime.strftime("%a %d %b %Y")
             self.hour = self.datetime.strftime("%H")
             self.month = self.datetime.strftime("%m")
             self.full_under_score = self.datetime.strftime("%d_%m_%Y_%H_%M")
             self.short_under_score = self.datetime.strftime("%d_%m_%Y")
 
 
-def remove_non_alphanumeric(str_to_change):
+def isBlank(myString):
+    myString = str(myString)
+    return not (myString and myString.strip())
+
+
+def isNotBlank(myString):
+    myString = str(myString)
+    return bool(myString and myString.strip())
+
+
+def remove_non_alphanumeric(str_to_change: str) -> str:
     """
     Function to remove all non alphanumerical data
     params
@@ -117,7 +130,7 @@ def days_between(start_date, end_date):
     return days
 
 
-def get_airport_country(airport_iata):
+def get_airport_country(airport_iata: str) -> str:
     sys.path.append(os.path.abspath(os.curdir))
     from pyairports.airports import Airports
 
@@ -144,7 +157,7 @@ def get_airport_country(airport_iata):
         return "UNKNOWN"
 
 
-def get_airport_name(airport_iata):
+def get_airport_name(airport_iata: str) -> str:
     sys.path.append(os.path.abspath(os.curdir))
     from pyairports.airports import Airports
 
@@ -169,8 +182,9 @@ def get_airport_name(airport_iata):
         return "UNKNOWN"
 
 
-def hex_to_rgb(value):
+def hex_to_rgb(value: str) -> tuple:
     """
+    https://www.codespeedy.com/create-random-hex-color-code-in-python/
     Function to conver HEX color to RGB
     params
     @value the HEX value with # like #F000000 -> str

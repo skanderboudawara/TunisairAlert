@@ -8,7 +8,9 @@ from utils.utility import TimeAttribute
 # Adding Airlines
 if __name__ == "__main__":
     YESTERDAY_DATE = TimeAttribute().yesterday
+
     clean_sql_table(YESTERDAY_DATE)
+
     (
         picture_to_upload,
         nb_delays_arr,
@@ -16,6 +18,7 @@ if __name__ == "__main__":
         arrival_delayed_max,
         text_worse,
     ) = generate_report(YESTERDAY_DATE)
+
     tweet_text = f"""
 📊 Daily ingest of ✈️  #Tunisair delay performance
 Date: {TimeAttribute(YESTERDAY_DATE).dateformat} with {nb_delays_dep} #delayed_departure and {nb_delays_arr} #delayed_arrival
@@ -23,6 +26,7 @@ The worst flight was
 🛫{text_worse}🛬
 🇹🇳 #Tunisia #Flight #DataAnalyst #Nouvelair #Airfrance #Transavia
     """
+
     post_tweet_with_pic(
         tweet_text,
         picture_to_upload,

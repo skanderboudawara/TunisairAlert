@@ -7,7 +7,10 @@ from utils.utility import TimeAttribute
 # Adding Airlines
 if __name__ == "__main__":
     today = TimeAttribute().today
+
     get_flights("departure", today)
     get_flights("arrival", today)
+
     clean_sql_table(today)
+
     generate_report(today)

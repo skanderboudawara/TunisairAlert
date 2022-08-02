@@ -21,8 +21,10 @@ def import_ftp_sqldb():
 
 
 if __name__ == "__main__":
+
     TODAY_DATE = TimeAttribute().today
     YESTERDAY_DATE = TimeAttribute().yesterday
+
     import_ftp_sqldb()
 
     clean_sql_table(TODAY_DATE)
