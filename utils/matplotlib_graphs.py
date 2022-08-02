@@ -127,8 +127,7 @@ def plot_from_to_airport(
         & (df["DEPARTURE_COUNTRY"] == from_airport)
     ]
     # Creating the pivot table
-    df_ftype_delay = df[[f"{type_flight}_DELAY",
-                         f"{type_flight}_HOUR", "AIRLINE"]]
+    df_ftype_delay = df[[f"{type_flight}_DELAY", f"{type_flight}_HOUR", "AIRLINE"]]
     df_ftype_delay = (
         df_ftype_delay.fillna(0)
         .replace("", 0)
@@ -149,8 +148,7 @@ def plot_from_to_airport(
     ).fillna(0)
 
     # Creating the figures
-    fig, ax = plt.subplots(
-        facecolor="black", figsize=((1050 / 2) / 96, 160 / 96))
+    fig, ax = plt.subplots(facecolor="black", figsize=((1050 / 2) / 96, 160 / 96))
 
     df_ftype_delay.plot(
         kind="bar",
@@ -181,11 +179,9 @@ def plot_from_to_airport(
         handletextpad=0.6,
     )
 
-    ax_metadata(
-        ax, f"AVERAGE DELAY from {from_airport} -> {to_airport}", font_prop)
+    ax_metadata(ax, f"AVERAGE DELAY from {from_airport} -> {to_airport}", font_prop)
     # Save figure
-    picture_to_save = get_pic_location(
-        datetime_query, "delay_report", type_flight)
+    picture_to_save = get_pic_location(datetime_query, "delay_report", type_flight)
     fig.savefig(picture_to_save, bbox_inches="tight")
     return picture_to_save
 
@@ -219,16 +215,13 @@ def plot_tunisair_arrival_dep_delays(datetime_query):
     df_ftype_delay["DEPARTURE_DELAY"] = df_ftype_delay["DEPARTURE_DELAY"].astype(
         "float64"
     )
-    df_ftype_delay["ARRIVAL_DELAY"] = df_ftype_delay["ARRIVAL_DELAY"].astype(
-        "float64")
+    df_ftype_delay["ARRIVAL_DELAY"] = df_ftype_delay["ARRIVAL_DELAY"].astype("float64")
     df_ftype_delay = df_ftype_delay.rename(
-        columns={"DEPARTURE_DELAY": "AVG DEP DELAY",
-                 "ARRIVAL_DELAY": "AVG ARR DELAY"}
+        columns={"DEPARTURE_DELAY": "AVG DEP DELAY", "ARRIVAL_DELAY": "AVG ARR DELAY"}
     )
     df_ftype_delay = df_ftype_delay.fillna(0).replace("", 0)
     list_dep = list(df_ftype_delay["DEPARTURE_HOUR"].unique())
-    df_ftype_delay = df_ftype_delay.groupby(
-        ["DEPARTURE_HOUR"]).mean().fillna(0)
+    df_ftype_delay = df_ftype_delay.groupby(["DEPARTURE_HOUR"]).mean().fillna(0)
     # Creating the figures
     fig, ax = plt.subplots(facecolor="black", figsize=((1150) / 96, 110 / 96))
     plt.xticks(range(len(list_dep)), list_dep)

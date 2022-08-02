@@ -3,6 +3,7 @@ import re
 import sys
 import os
 import json
+from pathlib import Path
 
 
 class FontsTunisAlert:
@@ -12,8 +13,7 @@ class FontsTunisAlert:
     """
 
     def __init__(self):
-        self.skyfont = os.path.join(
-            os.path.abspath(os.curdir), "fonts/LEDBDREV.TTF")
+        self.skyfont = os.path.join(os.path.abspath(os.curdir), "fonts/LEDBDREV.TTF")
         self.skyfontInverted = os.path.join(
             os.path.abspath(os.curdir), "fonts/LEDBOARD.TTF"
         )
@@ -35,35 +35,31 @@ class FileFolderManager:
         self.dir = dir
         self.local_dir = os.path.join(os.path.abspath(os.curdir), dir)
 
-        if not (os.path.isdir(self.local_dir)):
+        if not (Path(self.dir).is_dir()):
             os.mkdir(self.local_dir)
 
         if name_file:
             self.file_dir = os.path.join(self.local_dir, name_file)
-            self.file_exist = os.path.exists(self.file_dir)
+            self.file_exist = Path(self.local_dir).exists()
 
     def read_txt(self):
-        if self.file_exist:
-            with open(self.file_dir) as f:
-                lines = f.readlines()
-            return None if len(lines) <= 0 else lines[0]
-        else:
+        if not (self.file_exist):
             with open(self.file_dir, "w") as f:
                 pass
             print(f"file not found, a new one is created at\n{self.file_dir}")
             return None
+        with open(self.file_dir) as f:
+            lines = f.readlines()
+        return None if len(lines) <= 0 else lines[0]
 
     def read_json(self, default=None):
-        if default is None:
-            default = {}
-        if self.file_exist:
-            with open(self.file_dir) as f:
-                return json.load(f)
-        else:
+        if not (self.file_exist):
             print(f"file not found, a new one is created at\n{self.file_dir}")
             with open(self.file_dir, "w") as f:
                 json.dump(default, f, indent=4)
             return default
+        with open(self.file_dir) as f:
+            return json.load(f)
 
     def save_json(self, dict):
         with open(self.file_dir, "w") as f:
@@ -185,6 +181,7 @@ def get_airport_country(airport_iata: str) -> str:
     """
     sys.path.append(os.path.abspath(os.curdir))
     from pyairports.airports import Airports
+
     try:
         return remove_non_alphanumeric(Airports().lookup(airport_iata).country.upper())
     except Exception:
@@ -206,6 +203,7 @@ def get_airport_name(airport_iata: str) -> str:
     """
     sys.path.append(os.path.abspath(os.curdir))
     from pyairports.airports import Airports
+
     try:
         return remove_non_alphanumeric(Airports().lookup(airport_iata).name.upper())
     except Exception:
@@ -224,4 +222,4 @@ def hex_to_rgb(value: str) -> tuple:
     """
     value = value.lstrip("#")
     lv = len(value)
-    return tuple(int(value[i: i + lv // 3], 16) for i in range(0, lv, lv // 3))
+    return tuple(int(value[i : i + lv // 3], 16) for i in range(0, lv, lv // 3))

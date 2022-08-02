@@ -21,8 +21,7 @@ Airport = namedtuple(
         "tzdb",
     ],
 )
-Other = namedtuple(
-    "Other", ["iata", "name", "country", "subdiv", "type", "lat", "lon"])
+Other = namedtuple("Other", ["iata", "name", "country", "subdiv", "type", "lat", "lon"])
 
 # Name       Name of airport. May or may not contain the City name.
 # City       Main city served by airport. May be spelled differently from Name.
@@ -42,8 +41,7 @@ Other = namedtuple(
 # approximation for 2009, built on a country level. Most airports in DST-less regions in countries that generally
 # observe DST (eg. AL, HI in the USA, NT, QL in Australia, parts of Canada) are marked incorrectly.
 
-AIRPORT_LIST = json.loads(resource_string(
-    "pyairports", "data/airport_list.json"))
+AIRPORT_LIST = json.loads(resource_string("pyairports", "data/airport_list.json"))
 OTHER_LIST = json.loads(resource_string("pyairports", "data/other_list.json"))
 
 
@@ -61,8 +59,7 @@ class Airports(object):
     @staticmethod
     def _validate(iata):
         if not isinstance(iata, (str, "utf-8")):
-            raise ValueError(
-                "iata must be a string, it is a {0}".format(type(iata)))
+            raise ValueError("iata must be a string, it is a {0}".format(type(iata)))
         iata = iata.strip().upper()
         if len(iata) != 3:
             raise ValueError("iata must be three characters")

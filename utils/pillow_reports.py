@@ -80,8 +80,7 @@ def add_banner(report, x, y, label: str, value):
     )
 
     return get_text_dimensions(
-        f"{label} {value}", ImageFont.truetype(
-            FontsTunisAlert().skyfont, FONT_SIZE)
+        f"{label} {value}", ImageFont.truetype(FontsTunisAlert().skyfont, FONT_SIZE)
     )
 
 
@@ -147,8 +146,7 @@ def paste_kpi(
         elif type_f == "DEPARTURE":
             nb_delays_dep = count_nb
         width_text, height_text = add_banner(
-            report, v_start +
-            30, h_start_bytype, f"DELAYED {type_f}:", f"{count_nb}"
+            report, v_start + 30, h_start_bytype, f"DELAYED {type_f}:", f"{count_nb}"
         )
         h_start_bytype = h_start + 85
 
@@ -184,59 +182,102 @@ def past_worse_flight(report, max_arrival_delay, h_start, query_date_formatted: 
     Returns:
         _type_: the image updated with the worse flight made by Tunisair
     """
-    worse_flight = [] if max_arrival_delay == 0 else execute_sql(
-        f'SELECT DEPARTURE_AIRPORT, ARRIVAL_AIRPORT, FLIGHT_NUMBER, AIRLINE FROM {SQL_TABLE_NAME}  WHERE DEPARTURE_DATE="{query_date_formatted}"  AND AIRLINE="TU" AND ARRIVAL_DELAY="{str(max_arrival_delay)}"  AND FLIGHT_STATUS<>"cancelled" ', "fetchone")
+    worse_flight = (
+        []
+        if max_arrival_delay == 0
+        else execute_sql(
+            f'SELECT DEPARTURE_AIRPORT, ARRIVAL_AIRPORT, FLIGHT_NUMBER, AIRLINE FROM {SQL_TABLE_NAME}  WHERE DEPARTURE_DATE="{query_date_formatted}"  AND AIRLINE="TU" AND ARRIVAL_DELAY="{str(max_arrival_delay)}"  AND FLIGHT_STATUS<>"cancelled" ',
+            "fetchone",
+        )
+    )
 
     h_worse_flight = h_start + 125
-    return _extracted_from_past_worse_flight_15(worse_flight, report, h_worse_flight, max_arrival_delay) if max_arrival_delay > 0 else _extracted_from_past_worse_flight_66(report, h_worse_flight)
+    return (
+        _extracted_from_past_worse_flight_15(
+            worse_flight, report, h_worse_flight, max_arrival_delay
+        )
+        if max_arrival_delay > 0
+        else _extracted_from_past_worse_flight_66(report, h_worse_flight)
+    )
 
 
 # TODO Rename this here and in `past_worse_flight`
 def _extracted_from_past_worse_flight_66(report, h_worse_flight):
     width_label, height_label = get_text_dimensions(
-        "ALL FLIGHTS ARE ON TIME", ImageFont.truetype(FontsTunisAlert().skyfont, FONT_SIZE))
+        "ALL FLIGHTS ARE ON TIME",
+        ImageFont.truetype(FontsTunisAlert().skyfont, FONT_SIZE),
+    )
 
-    add_banner(report, (1080 - width_label) / 2,
-               h_worse_flight, "ALL FLIGHTS ARE ON TIME", f"")
+    add_banner(
+        report, (1080 - width_label) / 2, h_worse_flight, "ALL FLIGHTS ARE ON TIME", f""
+    )
 
     result = "----------"
     width_text, height_text = get_text_dimensions(
-        result, ImageFont.truetype(FontsTunisAlert().skyfont, FONT_SIZE))
+        result, ImageFont.truetype(FontsTunisAlert().skyfont, FONT_SIZE)
+    )
 
     position_relative = (1080 - width_text) / 2
-    report.text((position_relative, h_worse_flight + height_label + 10), result,
-                font=ImageFont.truetype(FontsTunisAlert().skyfont, FONT_SIZE), fill="white")
+    report.text(
+        (position_relative, h_worse_flight + height_label + 10),
+        result,
+        font=ImageFont.truetype(FontsTunisAlert().skyfont, FONT_SIZE),
+        fill="white",
+    )
 
     return result
 
 
 # TODO Rename this here and in `past_worse_flight`
-def _extracted_from_past_worse_flight_15(worse_flight, report, h_worse_flight, max_arrival_delay):
+def _extracted_from_past_worse_flight_15(
+    worse_flight, report, h_worse_flight, max_arrival_delay
+):
     airport_worse_dep = worse_flight[0]
     airport_worse_arr = worse_flight[1]
     worse_flight_number = worse_flight[2]
     worse_airline = AIRLINE_NAMES[worse_flight[3]]
     width_label, height_label = get_text_dimensions(
-        f"WORST FLIGHT: {worse_airline} {worse_flight_number}", ImageFont.truetype(FontsTunisAlert().skyfont, 20))
+        f"WORST FLIGHT: {worse_airline} {worse_flight_number}",
+        ImageFont.truetype(FontsTunisAlert().skyfont, 20),
+    )
 
-    add_banner(report, (1080 - width_label) / 2, h_worse_flight,
-               "WORST FLIGHT:", f"{worse_airline} {worse_flight_number}")
+    add_banner(
+        report,
+        (1080 - width_label) / 2,
+        h_worse_flight,
+        "WORST FLIGHT:",
+        f"{worse_airline} {worse_flight_number}",
+    )
 
     result = str(
-        f"{airport_worse_dep} -----Delay of {str(max_arrival_delay)}M----> {airport_worse_arr}")
+        f"{airport_worse_dep} -----Delay of {str(max_arrival_delay)}M----> {airport_worse_arr}"
+    )
 
     width_text, height_text = get_text_dimensions(
-        result, ImageFont.truetype(FontsTunisAlert().skyfont, FONT_SIZE))
+        result, ImageFont.truetype(FontsTunisAlert().skyfont, FONT_SIZE)
+    )
 
     position_relative = (1080 - width_text) / 2
-    report.text((position_relative - 40, h_worse_flight + height_label + 15), "Q",
-                font=ImageFont.truetype(FontsTunisAlert().glyphAirport, FONT_SIZE), fill="white")
+    report.text(
+        (position_relative - 40, h_worse_flight + height_label + 15),
+        "Q",
+        font=ImageFont.truetype(FontsTunisAlert().glyphAirport, FONT_SIZE),
+        fill="white",
+    )
 
-    report.text((position_relative, h_worse_flight + height_label + 15), result,
-                font=ImageFont.truetype(FontsTunisAlert().skyfont, FONT_SIZE), fill="white")
+    report.text(
+        (position_relative, h_worse_flight + height_label + 15),
+        result,
+        font=ImageFont.truetype(FontsTunisAlert().skyfont, FONT_SIZE),
+        fill="white",
+    )
 
-    report.text((position_relative + width_text + 10, h_worse_flight + height_label + 15),
-                "P", font=ImageFont.truetype(FontsTunisAlert().glyphAirport, FONT_SIZE), fill="white")
+    report.text(
+        (position_relative + width_text + 10, h_worse_flight + height_label + 15),
+        "P",
+        font=ImageFont.truetype(FontsTunisAlert().glyphAirport, FONT_SIZE),
+        fill="white",
+    )
 
     return result
 
@@ -287,15 +328,19 @@ def flight_status_kpi(report, query_date_formatted: str, h_start, v_start_dep):
     """
     h_start = h_start + 15
     width_text, height_text = add_banner(
-        report, v_start_dep, h_start, "TUNISAIR FLIGHTS", "")
+        report, v_start_dep, h_start, "TUNISAIR FLIGHTS", ""
+    )
 
     v_start = v_start_dep + width_text + 10
     for status in FLIGHT_STATUS:
         count_sql_status = execute_sql(
-            f'''SELECT COUNT(*) FROM {SQL_TABLE_NAME} WHERE DEPARTURE_DATE="{query_date_formatted}" AND AIRLINE="TU"  AND FLIGHT_STATUS="{status}"''', "fetchone")[0]
+            f'''SELECT COUNT(*) FROM {SQL_TABLE_NAME} WHERE DEPARTURE_DATE="{query_date_formatted}" AND AIRLINE="TU"  AND FLIGHT_STATUS="{status}"''',
+            "fetchone",
+        )[0]
 
         width_text, height_text = add_banner(
-            report, v_start, h_start, f"{status}:", count_sql_status)
+            report, v_start, h_start, f"{status}:", count_sql_status
+        )
 
         v_start = v_start + width_text + 10
     return v_start, h_start
@@ -333,8 +378,7 @@ def generate_report(datetime_query):
 
     # LOGO BLOCK
     with Image.open(
-        FileFolderManager(
-            dir="utils", name_file="tunisair_alert_logo.png").file_dir
+        FileFolderManager(dir="utils", name_file="tunisair_alert_logo.png").file_dir
     ) as tunisair_logo:
         reportImg.paste(tunisair_logo, (25, 7))
 
@@ -368,8 +412,7 @@ def generate_report(datetime_query):
 
     # PLOT BLOCKS
     paste_plots(
-        reportImg, v_start_dep, 290, plot_tunisair_arrival_dep_delays(
-            datetime_query)
+        reportImg, v_start_dep, 290, plot_tunisair_arrival_dep_delays(datetime_query)
     )
 
     plot_h_pos = 470
@@ -387,13 +430,11 @@ def generate_report(datetime_query):
         plot_from_to_airport(datetime_query, "ARRIVAL", "FRANCE", "TUNISIA"),
     )
 
-    report.rounded_rectangle(
-        (v_start_dep, 290, 1060, 705), radius=20, outline="orange")
+    report.rounded_rectangle((v_start_dep, 290, 1060, 705), radius=20, outline="orange")
 
     # SAVE PICTURE
     reportImg.save(picture_to_save)
-    print(
-        f"Daily report created for {TimeAttribute(datetime_query).short_under_score}")
+    print(f"Daily report created for {TimeAttribute(datetime_query).short_under_score}")
     return (
         picture_to_save,
         nb_delays_arr,

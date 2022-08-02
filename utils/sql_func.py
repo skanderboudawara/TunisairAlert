@@ -87,7 +87,8 @@ def insert_in_table(values: tuple):
     """
     if create_table():
         execute_sql(
-            f"INSERT INTO {SQL_TABLE_NAME} {str(FLIGHT_TABLE_COLUMNS)} VALUES {values}")
+            f"INSERT INTO {SQL_TABLE_NAME} {str(FLIGHT_TABLE_COLUMNS)} VALUES {values}"
+        )
 
 
 def update_table(key: str, values: tuple):
@@ -122,7 +123,8 @@ def check_key(key: str):
     """
     if create_table():
         check = execute_sql(
-            f'SELECT 1 FROM {SQL_TABLE_NAME} WHERE ID_FLIGHT="{key}"', "fetchone")
+            f'SELECT 1 FROM {SQL_TABLE_NAME} WHERE ID_FLIGHT="{key}"', "fetchone"
+        )
 
         return check is not None
 
@@ -181,8 +183,7 @@ def clean_sql_table(datetime_query):
     if create_table():
 
         keys = id_keys(f'WHERE DEPARTURE_DATE="{query_date}"')
-        pragma = execute_sql(
-            f"PRAGMA table_info({SQL_TABLE_NAME})", "fetchall")
+        pragma = execute_sql(f"PRAGMA table_info({SQL_TABLE_NAME})", "fetchall")
         cols = [column[1] for column in pragma]
 
         def column_index(col_name):

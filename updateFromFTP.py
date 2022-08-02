@@ -11,8 +11,7 @@ def import_ftp_sqldb():
     To pull the SQL Table from the FTP server
     Credentials are saved in /credentials/ftp.json
     """
-    ftp_json = FileFolderManager(
-        dir="credentials", name_file="ftp.json").read_json()
+    ftp_json = FileFolderManager(dir="credentials", name_file="ftp.json").read_json()
     path = ftp_json["path"]
     filename = ftp_json["file_name"]
     PATH_SQL_DB = FileFolderManager(

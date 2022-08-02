@@ -62,8 +62,11 @@ def get_json_api(type_flight: str, airport_iata: str, airline_iata=None):
 
     print("getting json API")
     if airline_iata:
-        airline_iata = f"&airline_iata={airline_iata}" if isinstance(
-            airline_iata, str) else "".join([f"&airline_iata={airline}" for airline in airline_iata])
+        airline_iata = (
+            f"&airline_iata={airline_iata}"
+            if isinstance(airline_iata, str)
+            else "".join([f"&airline_iata={airline}" for airline in airline_iata])
+        )
 
     else:
         airline_iata = ""
@@ -131,7 +134,14 @@ def get_json_dict(datetime_query, force_update: bool, type_flight: str):
             return False
 
 
-def correct_datetime_info(datetime_actual: str, datetime_estimated: str, datetime_scheduled: str, flight_status: str, datetime_delay: int, text: str) -> tuple:
+def correct_datetime_info(
+    datetime_actual: str,
+    datetime_estimated: str,
+    datetime_scheduled: str,
+    flight_status: str,
+    datetime_delay: int,
+    text: str,
+) -> tuple:
     """_summary_
 
     Args:
@@ -156,8 +166,7 @@ def correct_datetime_info(datetime_actual: str, datetime_estimated: str, datetim
     dat_hour = TimeAttribute(effective_date).hour
     effective_date_str = TimeAttribute(effective_date).dateformat
     if effective_date > datetime_datetime_scheduled:
-        datetime_delay = mins_between(
-            datetime_datetime_scheduled, effective_date)
+        datetime_delay = mins_between(datetime_datetime_scheduled, effective_date)
     if (today_datetime > effective_date) & (flight_status != "cancelled"):
         flight_status = text
     return f"{dat_hour}h", effective_date_str, flight_status, datetime_delay
@@ -219,8 +228,7 @@ def get_flights(type_flight: str, datetime_query, force_update=False):
         arrival_actual = flight["arr_actual"] if "arr_actual" in flight else ""
         departure_delay = flight["delayed"] if "delayed" in flight else 0
         arrival_delay = flight["delayed"] if "delayed" in flight else 0
-        departure_delay = 0 if departure_delay is None else int(
-            departure_delay)
+        departure_delay = 0 if departure_delay is None else int(departure_delay)
         arrival_delay = 0 if arrival_delay is None else int(arrival_delay)
 
         ##################################################
