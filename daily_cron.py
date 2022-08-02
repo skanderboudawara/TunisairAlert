@@ -8,8 +8,8 @@ from utils.utility import TimeAttribute
 if __name__ == "__main__":
     today = TimeAttribute().today
 
-    get_flights("departure", today)
-    get_flights("arrival", today)
+    get_flights("departure", today, True)
+    get_flights("arrival", today, True)
 
     clean_sql_table(today)
 

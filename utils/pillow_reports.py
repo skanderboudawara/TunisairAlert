@@ -2,7 +2,7 @@
 from PIL import Image, ImageDraw, ImageFont  # Importing PILLOW
 import os  # Create and organize folders
 from utils.sql_func import execute_sql
-from utils.utility import FontsTunisAlert, FileFolderManager, TimeAttribute
+from utils.utility import FontsTunisAlert, FileFolderManager, TimeAttribute, isBlank
 from utils.const import (
     FONT_SIZE,
     SQL_OPERATORS,
@@ -38,7 +38,7 @@ def get_text_dimensions(text_string: str, font):
     return (text_width, text_height)
 
 
-def add_banner(report, x: int, y: int, label: str, value):
+def add_banner(report, x, y, label: str, value):
     """
     Function to create the label and it's value
     the label will be in orange
@@ -77,7 +77,7 @@ def add_banner(report, x: int, y: int, label: str, value):
     )
 
 
-def paste_plots(report, x: int, y: int, plot_pic: str):
+def paste_plots(report, x, y, plot_pic: str):
     """
     to past plots from matplotlib to the report
     @report the report from PILLOW -> Image
@@ -93,11 +93,11 @@ def paste_plots(report, x: int, y: int, plot_pic: str):
 
 def paste_kpi(
     report,
-    v_start_arr: int,
-    v_start_dep: int,
-    v_start: int,
-    h_start: int,
-    query_date_formatted: str,
+    v_start_arr,
+    v_start_dep,
+    v_start,
+    h_start,
+    query_date_formatted,
 ):
     """
     to create 2 rounded blocks and insert KPI , Count Min Max AVG per Departure Arrival
@@ -139,9 +139,9 @@ def paste_kpi(
                 f'''SELECT {sql_op}({type_f}_DELAY) FROM {SQL_TABLE_NAME} WHERE DEPARTURE_DATE="{str(query_date_formatted)}" AND AIRLINE="TU" AND {type_f}_DELAY<>"0" AND {type_f}_DELAY<>"" AND FLIGHT_STATUS<>"cancelled"''',
                 "fetchone",
             )[0]
-            result_fetch = (
+            result_fetch = int(
                 0
-                if (sql_execute_query is None) | (sql_execute_query == "")
+                if (((sql_execute_query is None)) | (isBlank(sql_execute_query)))
                 else sql_execute_query
             )
             result_fetch = int(round(result_fetch, 0))
@@ -154,9 +154,7 @@ def paste_kpi(
     return v_start, h_start, max_arrival_delay, nb_delays_arr, nb_delays_dep
 
 
-def past_worse_flight(
-    report, max_arrival_delay: int, h_start: int, query_date_formatted: str
-):
+def past_worse_flight(report, max_arrival_delay, h_start, query_date_formatted: str):
     """
     to fetch the worse flight by max arrival delay and past it in a block
     @report the report from PILLOW -> Image
@@ -279,9 +277,7 @@ def past_titles(report, datetime_query):
     )
 
 
-def flight_status_kpi(
-    report, query_date_formatted: str, h_start: int, v_start_dep: int
-):
+def flight_status_kpi(report, query_date_formatted: str, h_start, v_start_dep):
     """
     To generate the KPI count per flight status (Scheduled, Canceled, Active, Landed)
     @report the report from PILLOW -> Image

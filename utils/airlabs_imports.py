@@ -33,7 +33,7 @@ def fatal_code(e):
 @backoff.on_exception(
     backoff.expo, requests.exceptions.RequestException, max_time=300, giveup=fatal_code
 )
-def get_json_api(type_flight: str, airport_iata: str, airline_iata=""):
+def get_json_api(type_flight: str, airport_iata: str, airline_iata=None):
     """
     To make the API Request
     params
@@ -51,12 +51,14 @@ def get_json_api(type_flight: str, airport_iata: str, airline_iata=""):
         return
 
     print("getting json API")
-    if airline_iata is not None:
+    if airline_iata:
         airline_iata = (
             "&airline_iata=" + airline_iata
-            if (isinstance(airline_iata, str)) & (~(airline_iata.strip()))
+            if isinstance(airline_iata, str)
             else "".join(["&airline_iata=" + airline for airline in airline_iata])
         )
+    else:
+        airline_iata = ""
     api_request = f"https://airlabs.co/api/v9/schedules?{type_flight[:3]}_iata={airport_iata}{airline_iata}&api_key={_token}"
     print(api_request)
     return requests.get(api_request)
@@ -219,7 +221,8 @@ def get_flights(type_flight: str, datetime_query, force_upade=False):
         arrival_actual = flight["arr_actual"] if "arr_actual" in flight else ""
         departure_delay = flight["delayed"] if "delayed" in flight else 0
         arrival_delay = flight["delayed"] if "delayed" in flight else 0
-
+        departure_delay = 0 if departure_delay is None else int(departure_delay)
+        arrival_delay = 0 if arrival_delay is None else int(arrival_delay)
         """
         ##################################################
         # Data Cleaning
