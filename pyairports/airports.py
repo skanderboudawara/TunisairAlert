@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 from pkg_resources import resource_string
 from collections import namedtuple
 from string import ascii_uppercase

@@ -1,8 +1,6 @@
-#!/usr/bin/python
-import os  # OS
-from cycler import cycler  # To define color cycle
+#!/usr/bin/python3
 import matplotlib.pyplot as plt  # plotlib library
-from matplotlib import font_manager as fm, markers  # font manager
+from matplotlib import font_manager as fm  # font manager
 import pandas as pd  # Pandas library
 import matplotlib
 from utils.sql_func import execute_sql

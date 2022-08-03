@@ -1,3 +1,4 @@
+# !/usr/bin/python3
 # CONST
 # Import necessary fonts
 AIRLINE_NAMES = {

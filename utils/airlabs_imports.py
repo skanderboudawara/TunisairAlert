@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 import requests  # APIs
 from utils.utility import (
     mins_between,

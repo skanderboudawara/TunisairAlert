@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 from utils.pillow_reports import generate_report
 from pytwitter.post_twitter import post_tweet_with_pic
 from utils.sql_func import clean_sql_table

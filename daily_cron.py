@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 from utils.airlabs_imports import get_flights
 from utils.pillow_reports import generate_report
 from utils.sql_func import clean_sql_table

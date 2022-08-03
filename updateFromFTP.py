@@ -1,6 +1,5 @@
+#!/usr/bin/python3
 import ftplib
-import os
-from sqlite3 import adapt
 from utils.pillow_reports import generate_report
 from utils.sql_func import clean_sql_table
 from utils.utility import TimeAttribute, FileFolderManager
@@ -8,7 +7,7 @@ from utils.utility import TimeAttribute, FileFolderManager
 
 def import_ftp_sqldb():
     """_summary_
-    To pull the SQL Table from the FTP server
+    To pull the SQL Table from the FTP servera
     Credentials are saved in /credentials/ftp.json
     """
     ftp_json = FileFolderManager(dir="credentials", name_file="ftp.json").read_json()

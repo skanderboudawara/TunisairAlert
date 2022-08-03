@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 from PIL import Image, ImageDraw, ImageFont  # Importing PILLOW
 import os  # Create and organize folders
 from utils.sql_func import execute_sql
@@ -209,7 +209,7 @@ def _extracted_from_past_worse_flight_66(report, h_worse_flight):
     )
 
     add_banner(
-        report, (1080 - width_label) / 2, h_worse_flight, "ALL FLIGHTS ARE ON TIME", f""
+        report, (1080 - width_label) / 2, h_worse_flight, "ALL FLIGHTS ARE ON TIME", ""
     )
 
     result = "----------"

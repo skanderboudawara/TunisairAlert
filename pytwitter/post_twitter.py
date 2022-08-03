@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 import tweepy
 from pytwitter.get_cred import get_authentification_json
 
@@ -27,6 +27,6 @@ def post_tweet_with_pic(tweet_msg, picture_loc=None):
     # Upload image
     if picture_loc is not None:
         media = api.media_upload(picture_loc)
-        post_result = api.update_status(status=tweet_msg, media_ids=[media.media_id])
+        api.update_status(status=tweet_msg, media_ids=[media.media_id])
     else:
-        post_result = api.update_status(status=tweet_msg)
+        api.update_status(status=tweet_msg)

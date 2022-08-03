@@ -1,13 +1,10 @@
-#!/usr/bin/python
-from utils.utility import get_airport_name, FileFolderManager, TimeAttribute
+#!/usr/bin/python3
+from utils.utility import FileFolderManager, TimeAttribute
 from utils.const import FLIGHT_TABLE_COLUMNS, SQL_TABLE_NAME
 import sys
 import sqlite3
 import time
 import os
-import sys
-import os
-
 
 PATH_SQL_DB = FileFolderManager(
     dir="datasets/SQL table", name_file="tunisair_delay.db"
