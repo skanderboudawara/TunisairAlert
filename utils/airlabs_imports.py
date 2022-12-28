@@ -1,12 +1,12 @@
 #!/usr/bin/python3
 import requests  # APIs
 from utils.utility import (
-    mins_between,
+    get_mins_between,
     get_airport_country,
     get_airport_name,
     TimeAttribute,
-    isNotBlank,
-    isBlank,
+    is_not_blank,
+    is_blank,
     FileFolderManager,
 )
 from utils.sql_func import update_table  # SQL interactions
@@ -20,7 +20,7 @@ def get_token():
     Returns:
         _type_: will return the Token value found in token.txt
     """
-    return FileFolderManager(dir="credentials", name_file="token.txt").read_txt()
+    return FileFolderManager(directory="credentials", name_file="token.txt").read_txt()
 
 
 def fatal_code(e):
@@ -36,9 +36,7 @@ def fatal_code(e):
     return 400 <= e.response.status_code < 500
 
 
-@backoff.on_exception(
-    backoff.expo, requests.exceptions.RequestException, max_time=300, giveup=fatal_code
-)
+@backoff.on_exception(backoff.expo, requests.exceptions.RequestException, max_time=300, giveup=fatal_code)
 def get_json_api(type_flight: str, airport_iata: str, airline_iata=None):
     """_summary_
     To make the API Request
@@ -52,13 +50,10 @@ def get_json_api(type_flight: str, airport_iata: str, airline_iata=None):
         _type_: the JSON pulled from the API
     """
     _token = get_token()
-    if isBlank(_token):
-        print("No token")
-        return
-
-    if isBlank(airport_iata):
-        print("IATA airport is mandatory")
-        return
+    assert isinstance(_token, str),"_token must be a string"
+    assert _token.strip() != "","_token must not be an empty string"
+    assert isinstance(airport_iata, str),"airport_iata must be a string"
+    assert airport_iata.strip() != "","airport_iata must not be an empty string"    
 
     print("getting json API")
     if airline_iata:
@@ -159,14 +154,15 @@ def correct_datetime_info(
     datetime_datetime_scheduled = TimeAttribute(datetime_scheduled).datetime
     effective_date = datetime_datetime_scheduled
     flight_status = flight_status
-    datetime_delay = datetime_delay if isNotBlank(datetime_delay) else 0
+    datetime_delay = datetime_delay if is_not_blank(datetime_delay) else 0
     for date_check in [datetime_estimated, datetime_actual]:
-        if isNotBlank(date_check):
+        if is_not_blank(date_check):
             effective_date = TimeAttribute(date_check).datetime
     dat_hour = TimeAttribute(effective_date).hour
     effective_date_str = TimeAttribute(effective_date).dateformat
     if effective_date > datetime_datetime_scheduled:
-        datetime_delay = mins_between(datetime_datetime_scheduled, effective_date)
+        datetime_delay = get_mins_between(
+            datetime_datetime_scheduled, effective_date)
     if (today_datetime > effective_date) & (flight_status != "cancelled"):
         flight_status = text
     return f"{dat_hour}h", effective_date_str, flight_status, datetime_delay

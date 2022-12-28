@@ -57,6 +57,7 @@ coverage.xml
 .hypothesis/
 .pytest_cache/
 cover/
+.vscode/
 
 # Translations
 *.mo
@@ -172,3 +173,6 @@ credential.json
 /credential
 credential/
 credential/*
+Info.plist
+datasets/SQL table/tunisair_delay.db
+datasets/SQL table/tunisair_delay.db
