@@ -1,18 +1,17 @@
 #!/usr/bin/python3
-from src.utils import FileFolderManager, TimeAttribute, correct_datetime_info
+from src.utils import FileFolderManager, TimeAttribute, correct_datetime_info, get_env
 from src.const import FLIGHT_TABLE_COLUMNS, SQL_TABLE_NAME, DEFAULT_TABLE
 import sqlite3
 import time
-
-PATH_SQL_DB = FileFolderManager(
-    directory="datasets/SQL table", name_file="tunisair_delay.db"
-).file_dir
-
-# Adding Airlines
+import ftplib
 
 
 class SqlManager:
     def __init__(self):
+        self.filename = get_env("file_name")
+        self.path_sql_db = FileFolderManager(
+            directory="datasets/SQL table", name_file=get_env("file_name")
+        ).file_dir
         self.execution = self.execute_sql(
             f"""CREATE TABLE  if not exists {SQL_TABLE_NAME} {DEFAULT_TABLE}"""
         )
@@ -29,7 +28,7 @@ class SqlManager:
 
         :returns: (list) the query or the fetch
         """
-        conn = sqlite3.connect(PATH_SQL_DB)
+        conn = sqlite3.connect(self.path_sql_db)
         cursor = conn.cursor()
         sql_execute = cursor.execute(sql)
         fetch_sql = sql_execute
@@ -193,3 +192,17 @@ class SqlManager:
 
         print("cleaning completed")
         time.sleep(1)
+
+    def import_ftp_sqldb(self):
+        """
+        To pull the SQL Table from the FTP servera
+        Credentials are saved in /credentials/ftp.json
+        """
+        path = get_env("path")
+        ftp = ftplib.FTP(get_env("ip_adress"))
+        ftp.login(get_env("login"), get_env("password"))
+        ftp.cwd(path)
+        ftp.retrbinary(f"RETR {self.filename}", open(self.path_table, "wb").write)
+        ftp.quit()
+
+        print("FTP DB imported")
