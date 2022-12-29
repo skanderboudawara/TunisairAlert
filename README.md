@@ -31,22 +31,22 @@ Whether you use this project, have learned something from it, or just like it, p
 
 ---
 ## Configuration
-- You need to grab a Token from airlabs.co and past it into `token.txt' located in the root folder
-- You also need to grab Twitter API codes [See tutorial](https://www.mattcrampton.com/blog/step_by_step_tutorial_to_post_to_twitter_using_python_part_two-posting_with_photos/) and past the information in `credential.json` located in `root/pytwitter/`
+- You need to grab a Token from airlabs.co and past it into `.env' located in the root folder
+- You also need to grab Twitter API codes [See tutorial](https://www.mattcrampton.com/blog/step_by_step_tutorial_to_post_to_twitter_using_python_part_two-posting_with_photos/) and past the information in `.env` located in `root/`
 
 ---
 
 ## Setup
 - `daily_cron.py` is the module that will ingest the data from Airlabs API
-- `postToTwitter.py` is the module that will post the report on Twitter
+- `post_to_twitter.py` is the module that will post the report on Twitter
 
 ---
 
 ## Usage
 - CRON JOB for `daily_cron.py`
 `0 0,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23 * * * root python daily_cron.py`
-- CRON JOB for `postToTwitter.py`
-`0 9 * * * root python postToTwitter.py`
+- CRON JOB for `post_to_twitter.py`
+`0 9 * * * root python post_to_twitter.py`
 
 ---
 
