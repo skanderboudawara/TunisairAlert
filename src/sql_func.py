@@ -4,15 +4,18 @@ from src.const import FLIGHT_TABLE_COLUMNS, SQL_TABLE_NAME, DEFAULT_TABLE
 import sqlite3
 import time
 
-PATH_SQL_DB = FileFolderManager(directory="datasets/SQL table", name_file="tunisair_delay.db").file_dir
+PATH_SQL_DB = FileFolderManager(
+    directory="datasets/SQL table", name_file="tunisair_delay.db"
+).file_dir
 
 # Adding Airlines
 
 
-class SqlManager():
-
+class SqlManager:
     def __init__(self):
-        self.execution = self.execute_sql(f"""CREATE TABLE  if not exists {SQL_TABLE_NAME} {DEFAULT_TABLE}""")
+        self.execution = self.execute_sql(
+            f"""CREATE TABLE  if not exists {SQL_TABLE_NAME} {DEFAULT_TABLE}"""
+        )
 
     def execute_sql(self, sql=None, fetchmethod=None):
         """
@@ -46,7 +49,9 @@ class SqlManager():
 
         :returns: None
         """
-        self.execute_sql(f"INSERT INTO {SQL_TABLE_NAME} {str(FLIGHT_TABLE_COLUMNS)} VALUES {values}")
+        self.execute_sql(
+            f"INSERT INTO {SQL_TABLE_NAME} {str(FLIGHT_TABLE_COLUMNS)} VALUES {values}"
+        )
 
     def update_table(self, key: str, values: tuple):
         """
@@ -61,7 +66,9 @@ class SqlManager():
             cross_col = ""
             for index, col in enumerate(FLIGHT_TABLE_COLUMNS):
                 cross_col = cross_col + col + '="' + str(values[index]) + '", '
-            self.execute_sql(f'UPDATE {SQL_TABLE_NAME} SET {cross_col[:-2]} WHERE ID_FLIGHT="{key}"')
+            self.execute_sql(
+                f'UPDATE {SQL_TABLE_NAME} SET {cross_col[:-2]} WHERE ID_FLIGHT="{key}"'
+            )
         else:
             self.insert_in_table(values)
 
@@ -73,7 +80,9 @@ class SqlManager():
 
         :returns: (bool), return true or false if key found
         """
-        check = self.execute_sql(f'SELECT 1 FROM {SQL_TABLE_NAME} WHERE ID_FLIGHT="{key}"', "fetchone")
+        check = self.execute_sql(
+            f'SELECT 1 FROM {SQL_TABLE_NAME} WHERE ID_FLIGHT="{key}"', "fetchone"
+        )
 
         return check is not None
 
@@ -85,7 +94,9 @@ class SqlManager():
 
         :returns: (list), list of all Key (meeting condition optional)
         """
-        fetch_all = self.execute_sql(f"SELECT ID_FLIGHT FROM {SQL_TABLE_NAME} {condition}", "fetchall")
+        fetch_all = self.execute_sql(
+            f"SELECT ID_FLIGHT FROM {SQL_TABLE_NAME} {condition}", "fetchall"
+        )
 
         return [key[0] for key in fetch_all]
 
@@ -106,7 +117,9 @@ class SqlManager():
                 "fetchone",
             )[0]
             output = func(values)
-            self.execute_sql(f'UPDATE {SQL_TABLE_NAME} SET {col_name_output}="{output}" WHERE ID_FLIGHT="{key}"')
+            self.execute_sql(
+                f'UPDATE {SQL_TABLE_NAME} SET {col_name_output}="{output}" WHERE ID_FLIGHT="{key}"'
+            )
 
     def clean_sql_table(self, datetime_query):
         """

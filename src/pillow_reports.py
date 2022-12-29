@@ -2,7 +2,14 @@
 from PIL import Image, ImageDraw, ImageFont  # Importing PILLOW
 import os  # Create and organize folders
 from src.sql_func import SqlManager
-from src.utils import FileFolderManager, TimeAttribute, is_blank, SKYFONT_INVERTED, SKYFONT, GLYPH_AIRPORT
+from src.utils import (
+    FileFolderManager,
+    TimeAttribute,
+    is_blank,
+    SKYFONT_INVERTED,
+    SKYFONT,
+    GLYPH_AIRPORT,
+)
 from src.const import (
     FONT_SIZE,
     SQL_OPERATORS,
@@ -140,8 +147,7 @@ def paste_kpi(report, v_start_arr, v_start_dep, v_start, h_start, query_date_for
         elif type_f == "DEPARTURE":
             nb_delays_dep = count_nb
         width_text, height_text = add_banner(
-            report, v_start +
-            30, h_start_bytype, f"DELAYED {type_f}:", f"{count_nb}"
+            report, v_start + 30, h_start_bytype, f"DELAYED {type_f}:", f"{count_nb}"
         )
         h_start_bytype = h_start + 85
 
@@ -194,6 +200,7 @@ def past_worse_flight(report, max_arrival_delay, h_start, query_date_formatted: 
         else draw_with_no_max_arrival(report, h_worse_flight)
     )
 
+
 def draw_with_no_max_arrival(report, h_worse_flight):
     width_label, height_label = get_text_dimensions(
         "ALL FLIGHTS ARE ON TIME",
@@ -201,8 +208,7 @@ def draw_with_no_max_arrival(report, h_worse_flight):
     )
 
     add_banner(
-        report, (1080 - width_label) /
-        2, h_worse_flight, "ALL FLIGHTS ARE ON TIME", ""
+        report, (1080 - width_label) / 2, h_worse_flight, "ALL FLIGHTS ARE ON TIME", ""
     )
 
     result = "----------"
@@ -369,8 +375,7 @@ def generate_report(datetime_query):
 
     # LOGO BLOCK
     with Image.open(
-        FileFolderManager(directory="src",
-                          name_file="tunisair_alert_logo.png").file_dir
+        FileFolderManager(directory="src", name_file="tunisair_alert_logo.png").file_dir
     ) as tunisair_logo:
         reportImg.paste(tunisair_logo, (25, 7))
 
@@ -404,8 +409,7 @@ def generate_report(datetime_query):
 
     # PLOT BLOCKS
     paste_plots(
-        reportImg, v_start_dep, 290, plot_tunisair_arrival_dep_delays(
-            datetime_query)
+        reportImg, v_start_dep, 290, plot_tunisair_arrival_dep_delays(datetime_query)
     )
 
     plot_h_pos = 470
@@ -423,13 +427,11 @@ def generate_report(datetime_query):
         plot_from_to_airport(datetime_query, "ARRIVAL", "FRANCE", "TUNISIA"),
     )
 
-    report.rounded_rectangle(
-        (v_start_dep, 290, 1060, 705), radius=20, outline="orange")
+    report.rounded_rectangle((v_start_dep, 290, 1060, 705), radius=20, outline="orange")
 
     # SAVE PICTURE
     reportImg.save(picture_to_save)
-    print(
-        f"Daily report created for {TimeAttribute(datetime_query).short_under_score}")
+    print(f"Daily report created for {TimeAttribute(datetime_query).short_under_score}")
     return (
         picture_to_save,
         nb_delays_arr,

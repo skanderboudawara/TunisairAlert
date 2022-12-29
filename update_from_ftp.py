@@ -12,7 +12,9 @@ def import_ftp_sqldb():
     """
     path = get_env("path")
     filename = get_env("file_name")
-    PATH_SQL_DB = FileFolderManager(directory="datasets/SQL table", name_file=filename).file_dir
+    PATH_SQL_DB = FileFolderManager(
+        directory="datasets/SQL table", name_file=filename
+    ).file_dir
     ftp = ftplib.FTP(get_env("ip_adress"))
     ftp.login(get_env("login"), get_env("password"))
     ftp.cwd(path)

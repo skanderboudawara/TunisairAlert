@@ -11,10 +11,10 @@ if __name__ == "__main__":
     generate the report
     """
     today = datetime.now()
-    
+
     airlabs = AirLabsData(today)
     airlabs.get_arrivals()
     airlabs.get_departures()
     airlabs.clean_sql_table(today)
-    
+
     generate_report(today)

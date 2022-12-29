@@ -1,6 +1,14 @@
 #!/usr/bin/python3
 
-from src.utils import get_airport_country, get_airport_name, TimeAttribute, FileFolderManager, get_env, correct_datetime_info, get_flight_key
+from src.utils import (
+    get_airport_country,
+    get_airport_name,
+    TimeAttribute,
+    FileFolderManager,
+    get_env,
+    correct_datetime_info,
+    get_flight_key,
+)
 from src.sql_func import SqlManager  # SQL interactions
 
 import backoff
@@ -24,24 +32,38 @@ class AirLabsData(SqlManager):
         if force_update is None:
             force_update = False
         datetime_query = TimeAttribute(datetime_query)
-        self.file_arrival = FileFolderManager(directory=f"datasets/arrival/{datetime_query.month}", name_file=f"{datetime_query.short_under_score}_arrival_flights.json")
-        self.file_departure = FileFolderManager(directory=f"datasets/departure/{datetime_query.month}", name_file=f"{datetime_query.short_under_score}_departure_flights.json")
+        self.file_arrival = FileFolderManager(
+            directory=f"datasets/arrival/{datetime_query.month}",
+            name_file=f"{datetime_query.short_under_score}_arrival_flights.json",
+        )
+        self.file_departure = FileFolderManager(
+            directory=f"datasets/departure/{datetime_query.month}",
+            name_file=f"{datetime_query.short_under_score}_departure_flights.json",
+        )
         self.execute_force_update(force_update)
-        
-    
+
     def execute_force_update(self, force_update):
         """
         to save api response
 
         :param force_update: (bool), True will force the update
-        
+
         :returns: none
         """
         if force_update:
-            self.file_arrival.save_json(self.get_json_api("departure", "TUN", ["TU", "BJ", "AF", "TO"]).json())
-            self.file_departure.save_json(self.get_json_api("arrival", "TUN", ["TU", "BJ", "AF", "TO"]).json())
-    
-    @backoff.on_exception(backoff.expo, requests.exceptions.RequestException, max_time=300, giveup=fatal_code)
+            self.file_arrival.save_json(
+                self.get_json_api("departure", "TUN", ["TU", "BJ", "AF", "TO"]).json()
+            )
+            self.file_departure.save_json(
+                self.get_json_api("arrival", "TUN", ["TU", "BJ", "AF", "TO"]).json()
+            )
+
+    @backoff.on_exception(
+        backoff.expo,
+        requests.exceptions.RequestException,
+        max_time=300,
+        giveup=fatal_code,
+    )
     def get_json_api(self, type_flight: str, airport_iata: str, airline_iata=None):
         """
         To make the API Request
@@ -70,33 +92,33 @@ class AirLabsData(SqlManager):
             airline_iata = ""
         api_request = f"https://airlabs.co/api/v9/schedules?{type_flight[:3]}_iata={airport_iata}{airline_iata}&api_key={_token}"
         return requests.get(api_request)
-    
+
     def get_arrivals(self):
         """
         Will get the arrival
-        
+
         :param: None
-        
+
         :return: None
         """
         json_flight = None
         while not json_flight:
             json_flight = self.file_arrival.read_json()
-            
+
         self.get_flights(json_flight)
-        
+
     def get_departures(self):
         """
         Will get the depatures
-        
+
         :param: None
-        
+
         :return: None
         """
         json_flight = None
         while not json_flight:
             json_flight = self.file_departure.read_json()
-            
+
         self.get_flights(json_flight)
 
     def get_flights(self, json_flight):
@@ -128,8 +150,12 @@ class AirLabsData(SqlManager):
 
             # Handling if exist
             # Data cleaning
-            departure_estimated = flight["dep_estimated"] if "dep_estimated" in flight else ""
-            arrival_estimated = flight["arr_estimated"] if "arr_estimated" in flight else ""
+            departure_estimated = (
+                flight["dep_estimated"] if "dep_estimated" in flight else ""
+            )
+            arrival_estimated = (
+                flight["arr_estimated"] if "arr_estimated" in flight else ""
+            )
             departure_actual = flight["dep_actual"] if "dep_actual" in flight else ""
             arrival_actual = flight["arr_actual"] if "arr_actual" in flight else ""
             departure_delay = flight["delayed"] if "delayed" in flight else 0
@@ -144,11 +170,35 @@ class AirLabsData(SqlManager):
             # correction of departure delay
             ##################################################
 
-            (dep_hour, departure_date, flight_status, departure_delay) = correct_datetime_info(departure_actual, departure_estimated, departure_scheduled, flight_status, departure_delay, "active")
+            (
+                dep_hour,
+                departure_date,
+                flight_status,
+                departure_delay,
+            ) = correct_datetime_info(
+                departure_actual,
+                departure_estimated,
+                departure_scheduled,
+                flight_status,
+                departure_delay,
+                "active",
+            )
             ##################################################
             # Correction of arrival delay
             ##################################################
-            (arr_hour, arrival_date, flight_status, arrival_delay,) = correct_datetime_info(arrival_actual, arrival_estimated, arrival_scheduled, flight_status, arrival_delay, "landed")
+            (
+                arr_hour,
+                arrival_date,
+                flight_status,
+                arrival_delay,
+            ) = correct_datetime_info(
+                arrival_actual,
+                arrival_estimated,
+                arrival_scheduled,
+                flight_status,
+                arrival_delay,
+                "landed",
+            )
 
             ##################################################
             # Data to be injected in the SQL
@@ -187,12 +237,3 @@ class AirLabsData(SqlManager):
             ##################################################
             self.update_table(flight_key, flight_extracted)
         print("Import completed")
-
-
-
-
-
-
-
-
-

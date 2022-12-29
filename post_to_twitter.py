@@ -18,7 +18,13 @@ if __name__ == "__main__":
 
     sql_table.clean_sql_table(yesterday.datetime)
 
-    (picture_to_upload, nb_delays_arr, nb_delays_dep, arrival_delayed_max, text_worse,) = generate_report(yesterday.datetime)
+    (
+        picture_to_upload,
+        nb_delays_arr,
+        nb_delays_dep,
+        arrival_delayed_max,
+        text_worse,
+    ) = generate_report(yesterday.datetime)
 
     tweet_text = f"""
 📊 Daily ingest of ✈️  #Tunisair delay performance

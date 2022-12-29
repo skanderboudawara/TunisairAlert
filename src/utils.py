@@ -40,7 +40,9 @@ def get_env(env_token):
     if not Path(path_env).exists():
         with open(path_env, "w+") as f:
             set_key(path_env, key_to_set="file_name", value_to_set="tunisair_delay.db")
-            set_key(path_env, key_to_set="path", value_to_set=path_dir("datasets/SQLtable/"))
+            set_key(
+                path_env, key_to_set="path", value_to_set=path_dir("datasets/SQLtable/")
+            )
             for key in [
                 "consumer_key",
                 "consumer_secret",
@@ -54,9 +56,11 @@ def get_env(env_token):
                 set_key(path_env, key_to_set=key, value_to_set="")
 
     load_dotenv(path_env)
-    
+
     assert os.getenv(env_token) is not None, f"Wrong Value: {env_token} do not exist"
-    assert (os.getenv(env_token).strip() != ""), f"Wrong Value: {env_token} must not be empty"
+    assert (
+        os.getenv(env_token).strip() != ""
+    ), f"Wrong Value: {env_token} must not be empty"
 
     return os.getenv(env_token)
 
@@ -144,9 +148,13 @@ class TimeAttribute:
         self.yesterday = (datetime.now() - timedelta(days=1)).astimezone(self.pytz_tn)
 
         if time_str:
-            assert isinstance(time_str, (str, datetime)), "Wrong Type: time_str must be a string or datetime"
+            assert isinstance(
+                time_str, (str, datetime)
+            ), "Wrong Type: time_str must be a string or datetime"
             if isinstance(time_str, str):
-                self.datetime = datetime.fromisoformat(time_str).astimezone(self.pytz_tn)
+                self.datetime = datetime.fromisoformat(time_str).astimezone(
+                    self.pytz_tn
+                )
             else:
                 self.datetime = time_str.astimezone(self.pytz_tn)
             self.dateformat = self.datetime.strftime("%d/%m/%Y")
@@ -171,7 +179,9 @@ class TimeAttribute:
             self.datetime, datetime
         ), "Wrong Type: start_date must be a datetime"
         assert isinstance(end_date, datetime), "Wrong Type: end_date must be a datetime"
-        assert end_date.astimezone(None) >= self.datetime.astimezone(None), "Wrong Value: end_date must be later than start_date"
+        assert end_date.astimezone(None) >= self.datetime.astimezone(
+            None
+        ), "Wrong Value: end_date must be later than start_date"
         c = end_date.astimezone(None) - self.datetime.astimezone(None)
         return c.total_seconds() / 60
 
@@ -190,7 +200,9 @@ class TimeAttribute:
         ), "Wrong Type: start_date must be a datetime"
         assert isinstance(end_date, datetime), "Wrong Type: end_date must be a datetime"
         end_date = end_date.astimezone(self.pytz_tn)
-        assert end_date.astimezone(None) >= self.datetime.astimezone(None), "Wrong Value: end_date must be later than start_date"
+        assert end_date.astimezone(None) >= self.datetime.astimezone(
+            None
+        ), "Wrong Value: end_date must be later than start_date"
         end_date = end_date.replace(hour=0, minute=0, second=0, microsecond=0)
         c = end_date.astimezone(None) - self.datetime.astimezone(None)
         return c.days + 1
@@ -205,7 +217,7 @@ def is_blank(myString):
     ::returns: (bool), True if blank False if not blank
     """
     myString = str(myString)
-    
+
     return not (myString and myString.strip())
 
 
@@ -282,10 +294,17 @@ def convert_hex_to_rgb(value: str) -> tuple:
 
     value = value.lstrip("#")
     lv = len(value)
-    return tuple(int(value[i: i + lv // 3], 16) for i in range(0, lv, lv // 3))
+    return tuple(int(value[i : i + lv // 3], 16) for i in range(0, lv, lv // 3))
 
 
-def correct_datetime_info(datetime_actual: str, datetime_estimated: str, datetime_scheduled: str, flight_status: str, datetime_delay: int, text: str):
+def correct_datetime_info(
+    datetime_actual: str,
+    datetime_estimated: str,
+    datetime_scheduled: str,
+    flight_status: str,
+    datetime_delay: int,
+    text: str,
+):
     """
     To correct the dates depending on the data
 
@@ -300,8 +319,12 @@ def correct_datetime_info(datetime_actual: str, datetime_estimated: str, datetim
     """
 
     assert isinstance(datetime_actual, str), "Wrong Type datetime_actual must be a str"
-    assert isinstance(datetime_estimated, str), "Wrong Type datetime_estimated must be a str"
-    assert isinstance(datetime_scheduled, str), "Wrong Type datetime_scheduled must be a str"
+    assert isinstance(
+        datetime_estimated, str
+    ), "Wrong Type datetime_estimated must be a str"
+    assert isinstance(
+        datetime_scheduled, str
+    ), "Wrong Type datetime_scheduled must be a str"
     assert isinstance(flight_status, str), "Wrong Type flight_status must be a str"
     assert isinstance(datetime_delay, int), "Wrong Type datetime_delay must be an int "
     assert isinstance(text, str), "Wrong Type text must be a str"
@@ -316,10 +339,16 @@ def correct_datetime_info(datetime_actual: str, datetime_estimated: str, datetim
             effective_date = TimeAttribute(date_check)
     if effective_date.datetime > datetime_datetime_scheduled.datetime:
         datetime_delay = datetime_datetime_scheduled.get_mins_between(
-            effective_date.datetime)
+            effective_date.datetime
+        )
     if (today_datetime > effective_date.datetime) & (flight_status != "cancelled"):
         flight_status = text
-    return f"{effective_date.hour}h", effective_date.dateformat, flight_status, datetime_delay
+    return (
+        f"{effective_date.hour}h",
+        effective_date.dateformat,
+        flight_status,
+        datetime_delay,
+    )
 
 
 def get_flight_key(flight_number: str, departure_scheduled: str) -> str:

@@ -6,8 +6,8 @@ import os
 
 
 def test_is_blank():
-    assert False == U.is_blank("5")
-    assert True == U.is_blank('')
+    assert not U.is_blank("5")
+    assert U.is_blank('')
 
 
 def test_remove_non_alphanumeric():
