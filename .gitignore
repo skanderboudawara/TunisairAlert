@@ -10,4 +10,3 @@ __pycache__/
 /data_analysis/reports/*
 data_pipeline/json_data/arrivals/*
 data_pipeline/json_data/departures/*
-.gitignore
