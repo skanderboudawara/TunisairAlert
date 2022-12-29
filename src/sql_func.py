@@ -10,7 +10,7 @@ class SqlManager:
     def __init__(self):
         self.filename = get_env("file_name")
         self.path_sql_db = FileFolderManager(
-            directory="datasets/SQL table", name_file=get_env("file_name")
+            directory="datasets/SQL table", name_file=self.filename
         ).file_dir
         self.execution = self.execute_sql(
             f"""CREATE TABLE  if not exists {SQL_TABLE_NAME} {DEFAULT_TABLE}"""
