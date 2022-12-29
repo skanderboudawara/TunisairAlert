@@ -32,8 +32,16 @@ def get_df_sql_data(datetime_query, type_flight: str):
     # todays date
     sql_table = SqlManager()
     todays_date = TimeAttribute(datetime_query).dateformat
-    # Path of the SQL Table
-    sql_df = f'SELECT * FROM {SQL_TABLE_NAME} WHERE {type_flight}_DATE="{str(todays_date)}" AND FLIGHT_STATUS<>"cancelled"'
+
+    sql_df = f'''
+    SELECT * 
+    FROM {SQL_TABLE_NAME} 
+    WHERE (
+        ({type_flight}_DATE = "{str(todays_date)}") AND 
+        (FLIGHT_STATUS <> "cancelled")
+    )
+    '''
+    
     query = sql_table.execute_sql(sql_df)
     data = sql_table.execute_sql(sql_df, "fetchall")
     cols = [column[0] for column in query.description]

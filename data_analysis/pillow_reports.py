@@ -139,7 +139,17 @@ def paste_kpi(report, v_start_arr, v_start_dep, v_start, h_start, query_date_for
 
         # Counting how many delays
         count_nb = sql_table.execute_sql(
-            f'''SELECT COUNT(*) FROM {SQL_TABLE_NAME} WHERE DEPARTURE_DATE="{str(query_date_formatted)}" AND AIRLINE="TU" AND {type_f}_DELAY<>"0" AND {type_f}_DELAY<>"" AND FLIGHT_STATUS<>"cancelled"''',
+            f'''
+            SELECT COUNT(*) 
+            FROM {SQL_TABLE_NAME} 
+            WHERE (
+                (DEPARTURE_DATE = "{str(query_date_formatted)}") AND 
+                (AIRLINE = "TU") AND 
+                ({type_f}_DELAY <> "0") AND 
+                ({type_f}_DELAY <> "") AND 
+                (FLIGHT_STATUS <> "cancelled")
+            )
+            ''',
             "fetchone",
         )[0]
         if type_f == "ARRIVAL":
@@ -154,7 +164,17 @@ def paste_kpi(report, v_start_arr, v_start_dep, v_start, h_start, query_date_for
         # add more info on MIN MAX AVG
         for sql_op in SQL_OPERATORS:
             sql_execute_query = sql_table.execute_sql(
-                f'''SELECT {sql_op}({type_f}_DELAY) FROM {SQL_TABLE_NAME} WHERE DEPARTURE_DATE="{str(query_date_formatted)}" AND AIRLINE="TU" AND {type_f}_DELAY<>"0" AND {type_f}_DELAY<>"" AND FLIGHT_STATUS<>"cancelled"''',
+                f'''
+                SELECT {sql_op}({type_f}_DELAY) 
+                FROM {SQL_TABLE_NAME} 
+                WHERE (
+                    (DEPARTURE_DATE = "{str(query_date_formatted)}") AND 
+                    (AIRLINE = "TU") AND 
+                    ({type_f}_DELAY <> "0") AND 
+                    ({type_f}_DELAY <> "") AND 
+                    (FLIGHT_STATUS <> "cancelled")
+                )
+                ''',
                 "fetchone",
             )[0]
             result_fetch = int(
@@ -188,7 +208,20 @@ def past_worse_flight(report, max_arrival_delay, h_start, query_date_formatted: 
         []
         if max_arrival_delay == 0
         else sql_table.execute_sql(
-            f'SELECT DEPARTURE_AIRPORT, ARRIVAL_AIRPORT, FLIGHT_NUMBER, AIRLINE FROM {SQL_TABLE_NAME}  WHERE DEPARTURE_DATE="{query_date_formatted}"  AND AIRLINE="TU" AND ARRIVAL_DELAY="{str(max_arrival_delay)}"  AND FLIGHT_STATUS<>"cancelled" ',
+            f'''
+            SELECT 
+                DEPARTURE_AIRPORT, 
+                ARRIVAL_AIRPORT, 
+                FLIGHT_NUMBER, 
+                AIRLINE 
+            FROM {SQL_TABLE_NAME}  
+            WHERE (
+                (DEPARTURE_DATE = "{query_date_formatted}") AND
+                (AIRLINE = "TU") AND 
+                (ARRIVAL_DELAY = "{str(max_arrival_delay)}") AND 
+                (FLIGHT_STATUS <> "cancelled")
+            )
+            ''',
             "fetchone",
         )
     )
@@ -331,7 +364,15 @@ def flight_status_kpi(report, query_date_formatted: str, h_start, v_start_dep):
     v_start = v_start_dep + width_text + 10
     for status in FLIGHT_STATUS:
         count_sql_status = sql_table.execute_sql(
-            f'''SELECT COUNT(*) FROM {SQL_TABLE_NAME} WHERE DEPARTURE_DATE="{query_date_formatted}" AND AIRLINE="TU"  AND FLIGHT_STATUS="{status}"''',
+            f'''
+            SELECT COUNT(*) 
+            FROM {SQL_TABLE_NAME} 
+            WHERE (
+                (DEPARTURE_DATE = "{query_date_formatted}") AND 
+                (AIRLINE = "TU") AND 
+                (FLIGHT_STATUS = "{status}")
+            )
+            ''',
             "fetchone",
         )[0]
 

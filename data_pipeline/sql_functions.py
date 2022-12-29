@@ -13,7 +13,10 @@ class SqlManager:
             directory="data_pipeline/", name_file=self.filename
         ).file_dir
         self.execution = self.execute_sql(
-            f"""CREATE TABLE  if not exists {SQL_TABLE_NAME} {DEFAULT_TABLE}"""
+            f'''
+            CREATE TABLE  if not exists {SQL_TABLE_NAME}
+            {DEFAULT_TABLE}
+            '''
         )
 
     def execute_sql(self, sql=None, fetchmethod=None):
@@ -49,7 +52,10 @@ class SqlManager:
         :returns: None
         """
         self.execute_sql(
-            f"INSERT INTO {SQL_TABLE_NAME} {str(FLIGHT_TABLE_COLUMNS)} VALUES {values}"
+            f'''
+            INSERT INTO {SQL_TABLE_NAME} 
+            {str(FLIGHT_TABLE_COLUMNS)} VALUES {values}
+            '''
         )
 
     def update_table(self, key: str, values: tuple):
@@ -66,7 +72,11 @@ class SqlManager:
             for index, col in enumerate(FLIGHT_TABLE_COLUMNS):
                 cross_col = cross_col + col + '="' + str(values[index]) + '", '
             self.execute_sql(
-                f'UPDATE {SQL_TABLE_NAME} SET {cross_col[:-2]} WHERE ID_FLIGHT="{key}"'
+                f'''
+                UPDATE {SQL_TABLE_NAME} 
+                SET {cross_col[:-2]} 
+                WHERE ID_FLIGHT="{key}"
+                '''
             )
         else:
             self.insert_in_table(values)
@@ -80,7 +90,12 @@ class SqlManager:
         :returns: (bool), return true or false if key found
         """
         check = self.execute_sql(
-            f'SELECT 1 FROM {SQL_TABLE_NAME} WHERE ID_FLIGHT="{key}"', "fetchone"
+            f'''
+            SELECT 1 
+            FROM {SQL_TABLE_NAME} 
+            WHERE (ID_FLIGHT = "{key}")
+            ''',
+            "fetchone"
         )
 
         return check is not None
@@ -94,7 +109,12 @@ class SqlManager:
         :returns: (list), list of all Key (meeting condition optional)
         """
         fetch_all = self.execute_sql(
-            f"SELECT ID_FLIGHT FROM {SQL_TABLE_NAME} {condition}", "fetchall"
+            f'''
+            SELECT ID_FLIGHT 
+            FROM {SQL_TABLE_NAME} 
+            {condition}
+            ''',
+            "fetchall"
         )
 
         return [key[0] for key in fetch_all]
@@ -112,7 +132,11 @@ class SqlManager:
         keys = self.id_keys()
         for key in keys:
             values = self.execute_sql(
-                f'SELECT {col_name_input} FROM {SQL_TABLE_NAME} WHERE ID_FLIGHT="{key}"',
+                f'''
+                SELECT {col_name_input} 
+                FROM {SQL_TABLE_NAME} 
+                WHERE (ID_FLIGHT = "{key}")
+                ''',
                 "fetchone",
             )[0]
             output = func(values)
@@ -133,7 +157,7 @@ class SqlManager:
 
         time.sleep(1)
         query_date = TimeAttribute(datetime_query).dateformat
-        keys = self.id_keys(f'WHERE DEPARTURE_DATE="{query_date}"')
+        keys = self.id_keys(f'WHERE (DEPARTURE_DATE = "{query_date}")')
         pragma = self.execute_sql(f"PRAGMA table_info({SQL_TABLE_NAME})", "fetchall")
         cols = [column[1] for column in pragma]
 
@@ -150,7 +174,11 @@ class SqlManager:
         for key in keys:
             values = list(
                 self.execute_sql(
-                    f'SELECT * FROM {SQL_TABLE_NAME} WHERE ID_FLIGHT="{key}"',
+                    f'''
+                    SELECT * 
+                    FROM {SQL_TABLE_NAME} 
+                    WHERE (ID_FLIGHT = "{key}")
+                    ''',
                     "fetchone",
                 )
             )
