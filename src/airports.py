@@ -1,6 +1,6 @@
 #!/usr/bin/python3
-from pkg_resources import resource_string
 from collections import namedtuple
+import os
 from string import ascii_uppercase
 import json
 
@@ -40,9 +40,12 @@ Other = namedtuple("Other", ["iata", "name", "country", "subdiv", "type", "lat",
 # Note: Rules for daylight savings time change from year to year and from country to country. The current data is an
 # approximation for 2009, built on a country level. Most airports in DST-less regions in countries that generally
 # observe DST (eg. AL, HI in the USA, NT, QL in Australia, parts of Canada) are marked incorrectly.
-
-AIRPORT_LIST = json.loads(resource_string("pyairports", "data/airport_list.json"))
-OTHER_LIST = json.loads(resource_string("pyairports", "data/other_list.json"))
+airport_list = os.path.join(os.path.abspath(os.curdir), "data_pipeline/json_data/airport_list.json")
+other_list = os.path.join(os.path.abspath(os.curdir), "data_pipeline/json_data/other_list.json")
+with open(airport_list, 'r') as f:
+    AIRPORT_LIST = json.load(f)
+with open(other_list, 'r') as f:
+    OTHER_LIST = json.load(f)
 
 
 class AirportNotFoundException(Exception):

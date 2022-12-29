@@ -4,7 +4,7 @@ import os
 import json
 import pytz
 import tweepy
-from pyairports.airports import Airports
+from src.airports import Airports
 from pathlib import Path
 from datetime import datetime, timedelta
 from dotenv import load_dotenv, set_key
@@ -240,7 +240,7 @@ def remove_non_alphanumeric(str_to_change):
 def get_airport_country(airport_iata: str) -> str:
     """
     Adding Airlines
-    from pyairports.airports import Airports
+    from src.airports import Airports
     Code from https://github.com/NICTA/pyairports
     I will handle errors if TUNISAIR made some unknown connections
 
@@ -252,8 +252,6 @@ def get_airport_country(airport_iata: str) -> str:
 
     assert isinstance(airport_iata, str), "Wrong Type: airport_iata must be a string"
 
-    
-
     try:
         return remove_non_alphanumeric(Airports().lookup(airport_iata).country.upper())
     except Exception:
@@ -263,7 +261,7 @@ def get_airport_country(airport_iata: str) -> str:
 def get_airport_name(airport_iata: str) -> str:
     """
     Adding Airlines
-    from pyairports.airports import Airports
+    from src.airports import Airports
     Code from https://github.com/NICTA/pyairports
     I will handle errors if TUNISAIR made some unknown connections
     Data enrichment
@@ -273,7 +271,6 @@ def get_airport_name(airport_iata: str) -> str:
     ::returns: (str), return the airport name
     """
     assert isinstance(airport_iata, str), "Wrong Type: airport_iata must be a string"
-
 
     try:
         return remove_non_alphanumeric(Airports().lookup(airport_iata).name.upper())
@@ -363,6 +360,7 @@ def get_flight_key(flight_number: str, departure_scheduled: str) -> str:
     departure_scheduled = TimeAttribute(departure_scheduled)
     return f"{flight_number}_{departure_scheduled.full_under_score}"
 
+
 def post_tweet_with_pic(tweet_msg, picture_loc=None):
     """
     to post a twitter with picture or not
@@ -378,11 +376,11 @@ def post_tweet_with_pic(tweet_msg, picture_loc=None):
         access_token_secret=get_env("access_token_secret"),
     )
 
-    api=tweepy.API(auth)
+    api = tweepy.API(auth)
 
     # Upload image
     if picture_loc is not None:
-        media=api.media_upload(picture_loc)
+        media = api.media_upload(picture_loc)
         api.update_status(status=tweet_msg, media_ids=[media.media_id])
     else:
         api.update_status(status=tweet_msg)
