@@ -1,0 +1,13 @@
+.env
+*/.DS_Store
+Info.plist
+.venv/
+.pytest_cache/
+.vscode/
+*/__pycache__
+.DS_Store
+__pycache__/
+/data_analysis/reports/*
+data_pipeline/json_data/arrivals/*
+data_pipeline/json_data/departures/*
+.gitignore
