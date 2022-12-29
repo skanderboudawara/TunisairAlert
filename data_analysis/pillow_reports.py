@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 from PIL import Image, ImageDraw, ImageFont  # Importing PILLOW
 import os  # Create and organize folders
-from src.sql_func import SqlManager
+from data_pipeline.sql_functions import SqlManager
 from src.utils import (
     FileFolderManager,
     TimeAttribute,
@@ -23,7 +23,7 @@ from src.const import (
 ######################################
 # Function to create the plotlib
 #####################################
-from src.matplotlib_graphs import (
+from data_analysis.pandas_matplotlib import (
     plot_from_to_airport,
     plot_tunisair_arrival_dep_delays,
 )
@@ -353,7 +353,7 @@ def get_picture_to_save_loc(datetime_query):
         _type_: the file path where to store the report
     """
     return FileFolderManager(
-        directory=f"reports/{TimeAttribute(datetime_query).month}",
+        directory=f"data_analysis/reports/{TimeAttribute(datetime_query).month}",
         name_file=f"{TimeAttribute(datetime_query).short_under_score}_report.png",
     ).file_dir
 

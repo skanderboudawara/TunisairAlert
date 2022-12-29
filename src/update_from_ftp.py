@@ -1,6 +1,6 @@
 #!/usr/bin/python3
-from src.pillow_reports import generate_report
-from src.sql_func import SqlManager
+from data_analysis.pillow_reports import generate_report
+from data_pipeline.sql_functions import SqlManager
 from src.utils import TimeAttribute
 
 

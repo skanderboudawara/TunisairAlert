@@ -1,8 +1,7 @@
 #!/usr/bin/python3
-from src.pillow_reports import generate_report
-from src.sql_func import SqlManager
-from src.utils import TimeAttribute
-from src.post_twitter import post_tweet_with_pic
+from data_analysis.pillow_reports import generate_report
+from data_pipeline.sql_functions import SqlManager
+from src.utils import TimeAttribute, post_tweet_with_pic
 from datetime import datetime, timedelta
 
 # Adding Airlines

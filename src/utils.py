@@ -3,7 +3,8 @@ import re
 import os
 import json
 import pytz
-
+import tweepy
+from pyairports.airports import Airports
 from pathlib import Path
 from datetime import datetime, timedelta
 from dotenv import load_dotenv, set_key
@@ -22,9 +23,9 @@ def path_dir(sub_path):
     return os.path.join(os.path.abspath(os.curdir), sub_path)
 
 
-SKYFONT = path_dir("fonts/LEDBDREV.TTF")
-SKYFONT_INVERTED = path_dir("fonts/LEDBOARD.TTF")
-GLYPH_AIRPORT = path_dir("fonts/GlyphyxOneNF.ttf")
+SKYFONT = path_dir("src/fonts/LEDBDREV.TTF")
+SKYFONT_INVERTED = path_dir("src/fonts/LEDBOARD.TTF")
+GLYPH_AIRPORT = path_dir("src/fonts/GlyphyxOneNF.ttf")
 
 
 def get_env(env_token):
@@ -251,7 +252,7 @@ def get_airport_country(airport_iata: str) -> str:
 
     assert isinstance(airport_iata, str), "Wrong Type: airport_iata must be a string"
 
-    from pyairports.airports import Airports
+    
 
     try:
         return remove_non_alphanumeric(Airports().lookup(airport_iata).country.upper())
@@ -273,7 +274,6 @@ def get_airport_name(airport_iata: str) -> str:
     """
     assert isinstance(airport_iata, str), "Wrong Type: airport_iata must be a string"
 
-    from pyairports.airports import Airports
 
     try:
         return remove_non_alphanumeric(Airports().lookup(airport_iata).name.upper())
@@ -362,3 +362,27 @@ def get_flight_key(flight_number: str, departure_scheduled: str) -> str:
     """
     departure_scheduled = TimeAttribute(departure_scheduled)
     return f"{flight_number}_{departure_scheduled.full_under_score}"
+
+def post_tweet_with_pic(tweet_msg, picture_loc=None):
+    """
+    to post a twitter with picture or not
+    Args:
+        tweet_msg (_type_): the tweet to be posted
+        picture_loc (_type_, optional): the path of the picture. Defaults to None.
+    """
+
+    auth = tweepy.OAuthHandler(
+        consumer_key=get_env("consumer_key"),
+        consumer_secret=get_env("consumer_secret"),
+        access_token=get_env("access_token"),
+        access_token_secret=get_env("access_token_secret"),
+    )
+
+    api=tweepy.API(auth)
+
+    # Upload image
+    if picture_loc is not None:
+        media=api.media_upload(picture_loc)
+        api.update_status(status=tweet_msg, media_ids=[media.media_id])
+    else:
+        api.update_status(status=tweet_msg)

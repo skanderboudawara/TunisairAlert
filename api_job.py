@@ -1,6 +1,6 @@
 #!/usr/bin/python3
-from src.airlabs_imports import AirLabsData
-from src.pillow_reports import generate_report
+from data_pipeline.api_requests import AirLabsData
+from data_analysis.pillow_reports import generate_report
 from datetime import datetime
 
 # Adding Airlines

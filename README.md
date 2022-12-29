@@ -4,10 +4,10 @@ Tunisair daily ingestion KPI
 This tool is developed to create a daily ingest report of Tunisair flight performance. 
 
 The report will show:
-- Tunisair made how many arrival and departure delays
+- how many arrival and departure delays has Tunisair made
 - The min, max, and average delays for departures and arrival
 - A bar chart performance comparison between Tunisair, Nouvelair, Airfrance (& Transavia)
-Once the daily report is generated, it will be published on the Twitter account [@Tunisairalert](https://twitter.com/Tunisairalert) at 9 a.m Europe/Paris timezone.
+- Once the daily report is generated, it will be published on the Twitter account [@Tunisairalert](https://twitter.com/Tunisairalert) at 9 a.m Europe/Paris timezone.
 
 ![Tunisair alert report Preview](https://i.ibb.co/n0sgBB4/01-08-2022-report.png)
 
@@ -35,15 +35,24 @@ Whether you use this project, have learned something from it, or just like it, p
 - You also need to grab Twitter API codes [See tutorial](https://www.mattcrampton.com/blog/step_by_step_tutorial_to_post_to_twitter_using_python_part_two-posting_with_photos/) and past the information in `.env` located in `root/`
 
 ---
+## Folder Structure
+```
+📁|- data-analysis : containing all pandas, and matplotlib features
+📁|- data-pipeline : containing the api requests, sql queries and the table.db
+📁|- src : containing media, utils and consts
+📁|- test : containing some function test
+🐍.api_job.py : will be used daily for data scrapping
+🐍.post_to_twitter.py : will be used daily to post on twitter
+```
 
 ## Setup
-- `daily_cron.py` is the module that will ingest the data from Airlabs API
+- `api_job.py` is the module that will ingest the data from Airlabs API
 - `post_to_twitter.py` is the module that will post the report on Twitter
 
 ---
 
 ## Usage
-- CRON JOB for `daily_cron.py`
+- CRON JOB for `api_job.py`
 `0 0,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23 * * * root python daily_cron.py`
 - CRON JOB for `post_to_twitter.py`
 `0 9 * * * root python post_to_twitter.py`

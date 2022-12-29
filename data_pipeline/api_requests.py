@@ -9,7 +9,7 @@ from src.utils import (
     correct_datetime_info,
     get_flight_key,
 )
-from src.sql_func import SqlManager  # SQL interactions
+from data_pipeline.sql_functions import SqlManager  # SQL interactions
 
 import backoff
 import requests  # APIs
@@ -33,11 +33,11 @@ class AirLabsData(SqlManager):
             force_update = False
         datetime_query = TimeAttribute(datetime_query)
         self.file_arrival = FileFolderManager(
-            directory=f"datasets/arrival/{datetime_query.month}",
+            directory=f"data_pipeline/json_data/arrivals/{datetime_query.month}",
             name_file=f"{datetime_query.short_under_score}_arrival_flights.json",
         )
         self.file_departure = FileFolderManager(
-            directory=f"datasets/departure/{datetime_query.month}",
+            directory=f"data_pipeline/json_data/departures/{datetime_query.month}",
             name_file=f"{datetime_query.short_under_score}_departure_flights.json",
         )
         self.execute_force_update(force_update)

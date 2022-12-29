@@ -1,8 +1,7 @@
 #!/usr/bin/python3
 from matplotlib import pyplot as plt, font_manager as fm, use as mat_use  # font manager
 import pandas as pd  # Pandas library
-import matplotlib
-from src.sql_func import SqlManager
+from data_pipeline.sql_functions import SqlManager
 from src.utils import TimeAttribute, FileFolderManager, SKYFONT
 from src.const import SQL_TABLE_NAME
 
@@ -59,7 +58,7 @@ def get_pic_location(datetime_query, name="DELAY", type_flight="DEPARTURE"):
     # Check the directory if it exists
 
     return FileFolderManager(
-        directory=f"reports/{TimeAttribute(datetime_query).month}",
+        directory=f"data_analysis/reports/{TimeAttribute(datetime_query).month}",
         name_file=f"{TimeAttribute(datetime_query).short_under_score}_{type_flight[:3]}_{name}.png",
     ).file_dir
 
