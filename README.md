@@ -63,7 +63,7 @@ path=
 file_name=tunisair_delay.db
 ip_adress=
 login=
-password=U$
+password=
 token_airlab=
 ```
 ---
