@@ -1,5 +1,7 @@
 # !/usr/bin/python3
-# CONST
+"""
+CONSTANTS PROJECT
+"""
 # Import necessary fonts
 AIRLINE_NAMES = {
     "TU": "TUNISAIR",

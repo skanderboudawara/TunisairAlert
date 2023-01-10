@@ -1,17 +1,19 @@
+"""
+Clean the SQL table of yesterday
+Generate the report of yesterday
+Generate the tweet text
+Post the twitter at 9.am
+"""
+from datetime import datetime, timedelta
+
 #!/usr/bin/python3
 from data_analysis.pillow_reports import generate_report
 from data_pipeline.sql_functions import SqlManager
 from src.utils import TimeAttribute, post_tweet_with_pic
-from datetime import datetime, timedelta
 
 # Adding Airlines
 if __name__ == "__main__":
-    """
-    Clean the SQL table of yesterday
-    Generate the report of yesterday
-    Generate the tweet text
-    Post the twitter at 9.am
-    """
+
     yesterday = TimeAttribute(datetime.now() - timedelta(days=1))
     sql_table = SqlManager()
 

@@ -1,23 +1,7 @@
 #!/usr/bin/python3
-from PIL import Image, ImageDraw, ImageFont  # Importing PILLOW
 import os  # Create and organize folders
-from data_pipeline.sql_functions import SqlManager
-from src.utils import (
-    FileFolderManager,
-    TimeAttribute,
-    is_blank,
-    SKYFONT_INVERTED,
-    SKYFONT,
-    GLYPH_AIRPORT,
-)
-from src.const import (
-    FONT_SIZE,
-    SQL_OPERATORS,
-    TYPE_FLIGHTS,
-    SQL_TABLE_NAME,
-    AIRLINE_NAMES,
-    FLIGHT_STATUS,
-)
+
+from PIL import Image, ImageDraw, ImageFont  # Importing PILLOW
 
 # Adding Airlines
 ######################################
@@ -26,6 +10,23 @@ from src.const import (
 from data_analysis.pandas_matplotlib import (
     plot_from_to_airport,
     plot_tunisair_arrival_dep_delays,
+)
+from data_pipeline.sql_functions import SqlManager
+from src.const import (
+    AIRLINE_NAMES,
+    FLIGHT_STATUS,
+    FONT_SIZE,
+    SQL_OPERATORS,
+    SQL_TABLE_NAME,
+    TYPE_FLIGHTS,
+)
+from src.utils import (
+    GLYPH_AIRPORT,
+    SKYFONT,
+    SKYFONT_INVERTED,
+    FileFolderManager,
+    TimeAttribute,
+    is_blank,
 )
 
 
@@ -109,7 +110,9 @@ def paste_plots(reportImg, x, y, plot_pic: str):
     return reportImg
 
 
-def paste_kpi(report, v_start_arr, v_start_dep, v_start, h_start, query_date_formatted):
+def paste_kpi(
+    report, v_start_arr, v_start_dep, v_start, h_start, query_date_formatted
+):
     """
     to create 2 rounded blocks and insert KPI ,
     Count Min Max AVG per Departure Arrival
@@ -139,7 +142,7 @@ def paste_kpi(report, v_start_arr, v_start_dep, v_start, h_start, query_date_for
 
         # Counting how many delays
         count_nb = sql_table.execute_sql(
-            f'''
+            f"""
             SELECT COUNT(*) 
             FROM {SQL_TABLE_NAME} 
             WHERE (
@@ -149,7 +152,7 @@ def paste_kpi(report, v_start_arr, v_start_dep, v_start, h_start, query_date_for
                 ({type_f}_DELAY <> "") AND 
                 (FLIGHT_STATUS <> "cancelled")
             )
-            ''',
+            """,
             "fetchone",
         )[0]
         if type_f == "ARRIVAL":
@@ -157,14 +160,18 @@ def paste_kpi(report, v_start_arr, v_start_dep, v_start, h_start, query_date_for
         elif type_f == "DEPARTURE":
             nb_delays_dep = count_nb
         width_text, height_text = add_banner(
-            report, v_start + 30, h_start_bytype, f"DELAYED {type_f}:", f"{count_nb}"
+            report,
+            v_start + 30,
+            h_start_bytype,
+            f"DELAYED {type_f}:",
+            f"{count_nb}",
         )
         h_start_bytype = h_start + 85
 
         # add more info on MIN MAX AVG
         for sql_op in SQL_OPERATORS:
             sql_execute_query = sql_table.execute_sql(
-                f'''
+                f"""
                 SELECT {sql_op}({type_f}_DELAY) 
                 FROM {SQL_TABLE_NAME} 
                 WHERE (
@@ -174,25 +181,34 @@ def paste_kpi(report, v_start_arr, v_start_dep, v_start, h_start, query_date_for
                     ({type_f}_DELAY <> "") AND 
                     (FLIGHT_STATUS <> "cancelled")
                 )
-                ''',
+                """,
                 "fetchone",
             )[0]
             result_fetch = int(
                 0
-                if (((sql_execute_query is None)) | (is_blank(sql_execute_query)))
+                if (
+                    ((sql_execute_query is None))
+                    | (is_blank(sql_execute_query))
+                )
                 else sql_execute_query
             )
             result_fetch = int(round(result_fetch, 0))
             if (sql_op == "MAX") & (type_f == "ARRIVAL"):
                 max_arrival_delay = result_fetch
             width_text, height_text = add_banner(
-                report, v_start, h_start_bytype, f"{sql_op}:", f"{result_fetch}M"
+                report,
+                v_start,
+                h_start_bytype,
+                f"{sql_op}:",
+                f"{result_fetch}M",
             )
             v_start = v_start + width_text
     return v_start, h_start, max_arrival_delay, nb_delays_arr, nb_delays_dep
 
 
-def past_worse_flight(report, max_arrival_delay, h_start, query_date_formatted: str):
+def past_worse_flight(
+    report, max_arrival_delay, h_start, query_date_formatted: str
+):
     """
     Args:
         report (_type_): the report from PILLOW
@@ -208,7 +224,7 @@ def past_worse_flight(report, max_arrival_delay, h_start, query_date_formatted: 
         []
         if max_arrival_delay == 0
         else sql_table.execute_sql(
-            f'''
+            f"""
             SELECT 
                 DEPARTURE_AIRPORT, 
                 ARRIVAL_AIRPORT, 
@@ -221,14 +237,16 @@ def past_worse_flight(report, max_arrival_delay, h_start, query_date_formatted: 
                 (ARRIVAL_DELAY = "{str(max_arrival_delay)}") AND 
                 (FLIGHT_STATUS <> "cancelled")
             )
-            ''',
+            """,
             "fetchone",
         )
     )
 
     h_worse_flight = h_start + 125
     return (
-        draw_with_max_arrival(worse_flight, report, h_worse_flight, max_arrival_delay)
+        draw_with_max_arrival(
+            worse_flight, report, h_worse_flight, max_arrival_delay
+        )
         if max_arrival_delay > 0
         else draw_with_no_max_arrival(report, h_worse_flight)
     )
@@ -241,7 +259,11 @@ def draw_with_no_max_arrival(report, h_worse_flight):
     )
 
     add_banner(
-        report, (1080 - width_label) / 2, h_worse_flight, "ALL FLIGHTS ARE ON TIME", ""
+        report,
+        (1080 - width_label) / 2,
+        h_worse_flight,
+        "ALL FLIGHTS ARE ON TIME",
+        "",
     )
 
     result = "----------"
@@ -260,7 +282,9 @@ def draw_with_no_max_arrival(report, h_worse_flight):
     return result
 
 
-def draw_with_max_arrival(worse_flight, report, h_worse_flight, max_arrival_delay):
+def draw_with_max_arrival(
+    worse_flight, report, h_worse_flight, max_arrival_delay
+):
     airport_worse_dep = worse_flight[0]
     airport_worse_arr = worse_flight[1]
     worse_flight_number = worse_flight[2]
@@ -302,7 +326,10 @@ def draw_with_max_arrival(worse_flight, report, h_worse_flight, max_arrival_dela
     )
 
     report.text(
-        (position_relative + width_text + 10, h_worse_flight + height_label + 15),
+        (
+            position_relative + width_text + 10,
+            h_worse_flight + height_label + 15,
+        ),
         "P",
         font=ImageFont.truetype(GLYPH_AIRPORT, FONT_SIZE),
         fill="white",
@@ -364,7 +391,7 @@ def flight_status_kpi(report, query_date_formatted: str, h_start, v_start_dep):
     v_start = v_start_dep + width_text + 10
     for status in FLIGHT_STATUS:
         count_sql_status = sql_table.execute_sql(
-            f'''
+            f"""
             SELECT COUNT(*) 
             FROM {SQL_TABLE_NAME} 
             WHERE (
@@ -372,7 +399,7 @@ def flight_status_kpi(report, query_date_formatted: str, h_start, v_start_dep):
                 (AIRLINE = "TU") AND 
                 (FLIGHT_STATUS = "{status}")
             )
-            ''',
+            """,
             "fetchone",
         )[0]
 
@@ -416,7 +443,9 @@ def generate_report(datetime_query):
 
     # LOGO BLOCK
     with Image.open(
-        FileFolderManager(directory="src", name_file="tunisair_alert_logo.png").file_dir
+        FileFolderManager(
+            directory="src", name_file="tunisair_alert_logo.png"
+        ).file_dir
     ) as tunisair_logo:
         reportImg.paste(tunisair_logo, (25, 7))
 
@@ -439,7 +468,13 @@ def generate_report(datetime_query):
 
     # To prepare the KPI of counting in Departure & Counting in Arrivals
     # 2 rounded rectangles that will contain the KPIs
-    v_start, h_start, max_arrival_delay, nb_delays_arr, nb_delays_dep = paste_kpi(
+    (
+        v_start,
+        h_start,
+        max_arrival_delay,
+        nb_delays_arr,
+        nb_delays_dep,
+    ) = paste_kpi(
         report, v_start_arr, v_start_dep, v_start, h_start, query_date_formatted
     )
 
@@ -450,7 +485,10 @@ def generate_report(datetime_query):
 
     # PLOT BLOCKS
     paste_plots(
-        reportImg, v_start_dep, 290, plot_tunisair_arrival_dep_delays(datetime_query)
+        reportImg,
+        v_start_dep,
+        290,
+        plot_tunisair_arrival_dep_delays(datetime_query),
     )
 
     plot_h_pos = 470
@@ -468,11 +506,15 @@ def generate_report(datetime_query):
         plot_from_to_airport(datetime_query, "ARRIVAL", "FRANCE", "TUNISIA"),
     )
 
-    report.rounded_rectangle((v_start_dep, 290, 1060, 705), radius=20, outline="orange")
+    report.rounded_rectangle(
+        (v_start_dep, 290, 1060, 705), radius=20, outline="orange"
+    )
 
     # SAVE PICTURE
     reportImg.save(picture_to_save)
-    print(f"Daily report created for {TimeAttribute(datetime_query).short_under_score}")
+    print(
+        f"Daily report created for {TimeAttribute(datetime_query).short_under_score}"
+    )
     return (
         picture_to_save,
         nb_delays_arr,

@@ -1,13 +1,18 @@
-#!/usr/bin/python3
-import re
-import os
+"""
+All Modules utilities
+"""
+
 import json
+import os
+import re
+from datetime import datetime, timedelta
+from pathlib import Path
+
 import pytz
 import tweepy
-from src.airports import Airports
-from pathlib import Path
-from datetime import datetime, timedelta
 from dotenv import load_dotenv, set_key
+
+from src.airports import Airports
 
 TUNISIA_TZ = "Africa/Tunis"
 
@@ -39,10 +44,16 @@ def get_env(env_token):
 
     path_env = path_dir(".env")
     if not Path(path_env).exists():
-        with open(path_env, "w+") as f:
-            set_key(path_env, key_to_set="file_name", value_to_set="tunisair_delay.db")
+        with open(path_env, "w+", encoding="UTF-8"):
             set_key(
-                path_env, key_to_set="path", value_to_set=path_dir("datasets/SQLtable/")
+                path_env,
+                key_to_set="file_name",
+                value_to_set="tunisair_delay.db",
+            )
+            set_key(
+                path_env,
+                key_to_set="path",
+                value_to_set=path_dir("datasets/SQLtable/"),
             )
             for key in [
                 "consumer_key",
@@ -58,7 +69,9 @@ def get_env(env_token):
 
     load_dotenv(path_env)
 
-    assert os.getenv(env_token) is not None, f"Wrong Value: {env_token} do not exist"
+    assert (
+        os.getenv(env_token) is not None
+    ), f"Wrong Value: {env_token} do not exist"
     assert (
         os.getenv(env_token).strip() != ""
     ), f"Wrong Value: {env_token} must not be empty"
@@ -93,7 +106,7 @@ class FileFolderManager:
         self.dir = directory
         self.local_dir = path_dir(directory)
 
-        if not (Path(self.dir).is_dir()):
+        if not Path(self.dir).is_dir():
             os.mkdir(self.local_dir)
 
         if name_file:
@@ -110,10 +123,12 @@ class FileFolderManager:
 
         if default is None:
             default = {}
-        assert isinstance(default, dict), "Wrong Type: default must be a dictionary"
+        assert isinstance(
+            default, dict
+        ), "Wrong Type: default must be a dictionary"
 
-        with open(self.file_dir, "r") as f:
-            return json.load(f)
+        with open(self.file_dir, "r", encoding="UTF-8") as file_json:
+            return json.load(file_json)
 
     def save_json(self, dict_f):
         """
@@ -123,10 +138,12 @@ class FileFolderManager:
         """
         if dict_f is None:
             dict_f = {}
-        assert isinstance(dict_f, dict), "Wrong Type: dict_f must be a dictionary"
+        assert isinstance(
+            dict_f, dict
+        ), "Wrong Type: dict_f must be a dictionary"
 
-        with open(self.file_dir, "w+") as f:
-            json.dump(dict_f, f, indent=4)
+        with open(self.file_dir, "w+", encoding="UTF-8") as file_json:
+            json.dump(dict_f, file_json, indent=4)
 
 
 class TimeAttribute:
@@ -146,7 +163,9 @@ class TimeAttribute:
 
         self.today = datetime.now().astimezone(self.pytz_tn)
 
-        self.yesterday = (datetime.now() - timedelta(days=1)).astimezone(self.pytz_tn)
+        self.yesterday = (datetime.now() - timedelta(days=1)).astimezone(
+            self.pytz_tn
+        )
 
         if time_str:
             assert isinstance(
@@ -179,12 +198,14 @@ class TimeAttribute:
         assert isinstance(
             self.datetime, datetime
         ), "Wrong Type: start_date must be a datetime"
-        assert isinstance(end_date, datetime), "Wrong Type: end_date must be a datetime"
+        assert isinstance(
+            end_date, datetime
+        ), "Wrong Type: end_date must be a datetime"
         assert end_date.astimezone(None) >= self.datetime.astimezone(
             None
         ), "Wrong Value: end_date must be later than start_date"
-        c = end_date.astimezone(None) - self.datetime.astimezone(None)
-        return c.total_seconds() / 60
+        time_in_sec = end_date.astimezone(None) - self.datetime.astimezone(None)
+        return time_in_sec.total_seconds() / 60
 
     def get_days_between(self, end_date):
         """
@@ -199,17 +220,19 @@ class TimeAttribute:
         assert isinstance(
             self.datetime, datetime
         ), "Wrong Type: start_date must be a datetime"
-        assert isinstance(end_date, datetime), "Wrong Type: end_date must be a datetime"
+        assert isinstance(
+            end_date, datetime
+        ), "Wrong Type: end_date must be a datetime"
         end_date = end_date.astimezone(self.pytz_tn)
         assert end_date.astimezone(None) >= self.datetime.astimezone(
             None
         ), "Wrong Value: end_date must be later than start_date"
         end_date = end_date.replace(hour=0, minute=0, second=0, microsecond=0)
-        c = end_date.astimezone(None) - self.datetime.astimezone(None)
-        return c.days + 1
+        time_in_sec = end_date.astimezone(None) - self.datetime.astimezone(None)
+        return time_in_sec.days + 1
 
 
-def is_blank(myString):
+def is_blank(my_string):
     """
     to test if the string is blank
 
@@ -217,9 +240,9 @@ def is_blank(myString):
 
     ::returns: (bool), True if blank False if not blank
     """
-    myString = str(myString)
+    my_string = str(my_string)
 
-    return not (myString and myString.strip())
+    return not (my_string and my_string.strip())
 
 
 def remove_non_alphanumeric(str_to_change):
@@ -232,7 +255,9 @@ def remove_non_alphanumeric(str_to_change):
     """
     if str_to_change is None:
         str_to_change = ""
-    assert isinstance(str_to_change, str), "Wrong Type: str_to_change must be a str"
+    assert isinstance(
+        str_to_change, str
+    ), "Wrong Type: str_to_change must be a str"
 
     return re.sub("[^A-Za-z0-9 ]", "", str_to_change)
 
@@ -250,11 +275,15 @@ def get_airport_country(airport_iata: str) -> str:
     ::returns: (str), return the airport country
     """
 
-    assert isinstance(airport_iata, str), "Wrong Type: airport_iata must be a string"
+    assert isinstance(
+        airport_iata, str
+    ), "Wrong Type: airport_iata must be a string"
 
     try:
-        return remove_non_alphanumeric(Airports().lookup(airport_iata).country.upper())
-    except Exception:
+        return remove_non_alphanumeric(
+            Airports().lookup(airport_iata).country.upper()
+        )
+    except ValueError:
         return "UNKNOWN"
 
 
@@ -270,11 +299,15 @@ def get_airport_name(airport_iata: str) -> str:
 
     ::returns: (str), return the airport name
     """
-    assert isinstance(airport_iata, str), "Wrong Type: airport_iata must be a string"
+    assert isinstance(
+        airport_iata, str
+    ), "Wrong Type: airport_iata must be a string"
 
     try:
-        return remove_non_alphanumeric(Airports().lookup(airport_iata).name.upper())
-    except Exception:
+        return remove_non_alphanumeric(
+            Airports().lookup(airport_iata).name.upper()
+        )
+    except ValueError:
         return "UNKNOWN"
 
 
@@ -290,8 +323,11 @@ def convert_hex_to_rgb(value: str) -> tuple:
     assert isinstance(value, str), "Wrong Type: value must be a string"
 
     value = value.lstrip("#")
-    lv = len(value)
-    return tuple(int(value[i : i + lv // 3], 16) for i in range(0, lv, lv // 3))
+    hexa_value = len(value)
+    return tuple(
+        int(value[i : i + hexa_value // 3], 16)
+        for i in range(0, hexa_value, hexa_value // 3)
+    )
 
 
 def correct_datetime_info(
@@ -315,21 +351,26 @@ def correct_datetime_info(
     :returns: (tuple), (datetime_hour, real_datetime, actual_flight_status, real_delay)
     """
 
-    assert isinstance(datetime_actual, str), "Wrong Type datetime_actual must be a str"
+    assert isinstance(
+        datetime_actual, str
+    ), "Wrong Type datetime_actual must be a str"
     assert isinstance(
         datetime_estimated, str
     ), "Wrong Type datetime_estimated must be a str"
     assert isinstance(
         datetime_scheduled, str
     ), "Wrong Type datetime_scheduled must be a str"
-    assert isinstance(flight_status, str), "Wrong Type flight_status must be a str"
-    assert isinstance(datetime_delay, int), "Wrong Type datetime_delay must be an int "
+    assert isinstance(
+        flight_status, str
+    ), "Wrong Type flight_status must be a str"
+    assert isinstance(
+        datetime_delay, int
+    ), "Wrong Type datetime_delay must be an int "
     assert isinstance(text, str), "Wrong Type text must be a str"
 
     datetime_datetime_scheduled = TimeAttribute(datetime_scheduled)
     today_datetime = datetime_datetime_scheduled.today
     effective_date = datetime_datetime_scheduled
-    flight_status = flight_status
     datetime_delay = 0 if is_blank(datetime_delay) else datetime_delay
     for date_check in [datetime_estimated, datetime_actual]:
         if not is_blank(date_check):
@@ -338,7 +379,9 @@ def correct_datetime_info(
         datetime_delay = datetime_datetime_scheduled.get_mins_between(
             effective_date.datetime
         )
-    if (today_datetime > effective_date.datetime) & (flight_status != "cancelled"):
+    if (today_datetime > effective_date.datetime) & (
+        flight_status != "cancelled"
+    ):
         flight_status = text
     return (
         f"{effective_date.hour}h",

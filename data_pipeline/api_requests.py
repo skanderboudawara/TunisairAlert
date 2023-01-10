@@ -1,21 +1,23 @@
 #!/usr/bin/python3
-
-from src.utils import (
-    get_airport_country,
-    get_airport_name,
-    TimeAttribute,
-    FileFolderManager,
-    get_env,
-    correct_datetime_info,
-    get_flight_key,
-)
-from data_pipeline.sql_functions import SqlManager  # SQL interactions
-
+"""
+Api AIRLAB request management
+"""
 import backoff
 import requests  # APIs
 
+from data_pipeline.sql_functions import SqlManager  # SQL interactions
+from src.utils import (
+    FileFolderManager,
+    TimeAttribute,
+    correct_datetime_info,
+    get_airport_country,
+    get_airport_name,
+    get_env,
+    get_flight_key,
+)
 
-def fatal_code(e):
+
+def fatal_code(error_code):
     """
     Fatal code of response backoff
 
@@ -23,10 +25,14 @@ def fatal_code(e):
 
     ::returns: (bool), error value response
     """
-    return 400 <= e.response.status_code < 500
+    return 400 <= error_code.response.status_code < 500
 
 
 class AirLabsData(SqlManager):
+    """
+    Airlabs Management class
+    """
+
     def __init__(self, datetime_query, force_update=None):
         super().__init__()
         if force_update is None:
@@ -52,10 +58,14 @@ class AirLabsData(SqlManager):
         """
         if force_update:
             self.file_arrival.save_json(
-                self.get_json_api("departure", "TUN", ["TU", "BJ", "AF", "TO"]).json()
+                self.get_json_api(
+                    "departure", "TUN", ["TU", "BJ", "AF", "TO"]
+                ).json()
             )
             self.file_departure.save_json(
-                self.get_json_api("arrival", "TUN", ["TU", "BJ", "AF", "TO"]).json()
+                self.get_json_api(
+                    "arrival", "TUN", ["TU", "BJ", "AF", "TO"]
+                ).json()
             )
 
     @backoff.on_exception(
@@ -64,7 +74,9 @@ class AirLabsData(SqlManager):
         max_time=300,
         giveup=fatal_code,
     )
-    def get_json_api(self, type_flight: str, airport_iata: str, airline_iata=None):
+    def get_json_api(
+        self, type_flight: str, airport_iata: str, airline_iata=None
+    ):
         """
         To make the API Request
 
@@ -78,20 +90,24 @@ class AirLabsData(SqlManager):
         assert isinstance(_token, str), "_token must be a string"
         assert _token.strip() != "", "_token must not be an empty string"
         assert isinstance(airport_iata, str), "airport_iata must be a string"
-        assert airport_iata.strip() != "", "airport_iata must not be an empty string"
+        assert (
+            airport_iata.strip() != ""
+        ), "airport_iata must not be an empty string"
 
         print("getting json API")
         if airline_iata:
             airline_iata = (
                 f"&airline_iata={airline_iata}"
                 if isinstance(airline_iata, str)
-                else "".join([f"&airline_iata={airline}" for airline in airline_iata])
+                else "".join(
+                    [f"&airline_iata={airline}" for airline in airline_iata]
+                )
             )
 
         else:
             airline_iata = ""
         api_request = f"https://airlabs.co/api/v9/schedules?{type_flight[:3]}_iata={airport_iata}{airline_iata}&api_key={_token}"
-        return requests.get(api_request)
+        return requests.get(api_request, timeout=300)
 
     def get_arrivals(self):
         """
@@ -156,11 +172,17 @@ class AirLabsData(SqlManager):
             arrival_estimated = (
                 flight["arr_estimated"] if "arr_estimated" in flight else ""
             )
-            departure_actual = flight["dep_actual"] if "dep_actual" in flight else ""
-            arrival_actual = flight["arr_actual"] if "arr_actual" in flight else ""
+            departure_actual = (
+                flight["dep_actual"] if "dep_actual" in flight else ""
+            )
+            arrival_actual = (
+                flight["arr_actual"] if "arr_actual" in flight else ""
+            )
             departure_delay = flight["delayed"] if "delayed" in flight else 0
             arrival_delay = flight["delayed"] if "delayed" in flight else 0
-            departure_delay = 0 if departure_delay is None else int(departure_delay)
+            departure_delay = (
+                0 if departure_delay is None else int(departure_delay)
+            )
             arrival_delay = 0 if arrival_delay is None else int(arrival_delay)
 
             ##################################################

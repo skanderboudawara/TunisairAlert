@@ -1,15 +1,15 @@
+"""
+Pull the new SQL table from the FTP server
+Clean tables of today and yesterday
+Generate report of today and yesterday
+"""
 #!/usr/bin/python3
 from data_analysis.pillow_reports import generate_report
 from data_pipeline.sql_functions import SqlManager
 from src.utils import TimeAttribute
 
-
 if __name__ == "__main__":
-    """
-    Pull the new SQL table from the FTP server
-    Clean tables of today and yesterday
-    Generate report of today and yesterday
-    """
+
     date_attr = TimeAttribute()
     TODAY_DATE = date_attr.today
     YESTERDAY_DATE = date_attr.yesterday

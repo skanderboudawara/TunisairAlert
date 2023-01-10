@@ -1,8 +1,12 @@
+"""
+Module to generate and handle the Airports Metadata
+"""
 #!/usr/bin/python3
-from collections import namedtuple
-import os
-from string import ascii_uppercase
 import json
+import os
+from argparse import ArgumentParser
+from collections import namedtuple
+from string import ascii_uppercase
 
 ASCII_UPPERCASE = set(ascii_uppercase)
 Airport = namedtuple(
@@ -21,7 +25,9 @@ Airport = namedtuple(
         "tzdb",
     ],
 )
-Other = namedtuple("Other", ["iata", "name", "country", "subdiv", "type", "lat", "lon"])
+Other = namedtuple(
+    "Other", ["iata", "name", "country", "subdiv", "type", "lat", "lon"]
+)
 
 # Name       Name of airport. May or may not contain the City name.
 # City       Main city served by airport. May be spelled differently from Name.
@@ -40,19 +46,29 @@ Other = namedtuple("Other", ["iata", "name", "country", "subdiv", "type", "lat",
 # Note: Rules for daylight savings time change from year to year and from country to country. The current data is an
 # approximation for 2009, built on a country level. Most airports in DST-less regions in countries that generally
 # observe DST (eg. AL, HI in the USA, NT, QL in Australia, parts of Canada) are marked incorrectly.
-airport_list = os.path.join(os.path.abspath(os.curdir), "data_pipeline/json_data/airport_list.json")
-other_list = os.path.join(os.path.abspath(os.curdir), "data_pipeline/json_data/other_list.json")
-with open(airport_list, 'r') as f:
+airport_list = os.path.join(
+    os.path.abspath(os.curdir), "data_pipeline/json_data/airport_list.json"
+)
+other_list = os.path.join(
+    os.path.abspath(os.curdir), "data_pipeline/json_data/other_list.json"
+)
+with open(airport_list, "r", encoding="UTF-8") as f:
     AIRPORT_LIST = json.load(f)
-with open(other_list, 'r') as f:
+with open(other_list, "r", encoding="UTF-8") as f:
     OTHER_LIST = json.load(f)
 
 
 class AirportNotFoundException(Exception):
-    pass
+    """
+    Class not found exception
+    """
 
 
 class Airports(object):
+    """
+    Main Airport class
+    """
+
     def __init__(self):
 
         self.airports = {_[3].upper(): Airport(*_) for _ in AIRPORT_LIST}
@@ -61,42 +77,71 @@ class Airports(object):
 
     @staticmethod
     def _validate(iata):
-        if not isinstance(iata, (str, "utf-8")):
-            raise ValueError("iata must be a string, it is a {0}".format(type(iata)))
+        if not isinstance(iata, str):
+            raise ValueError(f"iata must be a string, it is a {type(iata)}")
         iata = iata.strip().upper()
         if len(iata) != 3:
             raise ValueError("iata must be three characters")
         return iata
 
     def airport_iata(self, iata):
+        """
+        return airport iata
+
+        :param iata: (str)
+        :return: (airport)
+        """
         return self.lookup(iata, self.airports)
 
     def other_iata(self, iata):
+        """
+        return metadata
+
+        :param iata: (str)
+        :return: (airpot)
+        """
         return self.lookup(iata, self.other)
 
     def is_valid(self, iata):
+        """
+        return metadata
+
+        :param iata: (str)
+        :return: (airpot)
+        """
         iata = self._validate(iata)
         return iata in self.airports or iata in self.other
 
     def lookup(self, iata, table=None):
+        """
+        lookup function
+
+        :param iata: (str)
+        :param table: (str), defaults to None
+        :raises AirportNotFoundException: _description_
+        :raises AirportNotFoundException: _description_
+        :return: _description_
+        """
         iata = self._validate(iata)
 
         if not self.is_valid(iata):
             raise AirportNotFoundException(
-                "iata not found in either airport list: {0}".format(iata)
+                f"iata not found in either airport list: {iata}"
             )
 
         if table is None:
             # Prefer self.airports over self.other
             return self.airports.get(iata) or self.other.get(iata)
         elif iata not in table:
-            raise AirportNotFoundException("iata not found: {0}".format(iata))
+            raise AirportNotFoundException(f"iata not found: {iata}")
 
         return table.get(iata)
 
 
 def main():  # pragma: no cover
-    from argparse import ArgumentParser
+    """
+    Main function
+    """
 
     parser = ArgumentParser("Airport lookup by IATA code")
     parser.add_argument("iata", action="store")
