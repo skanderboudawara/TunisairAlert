@@ -37,6 +37,7 @@ The generated report includes:
 - An API request is made to [Airlabs](https://airlabs.co/)  to gather data in JSON format.
 - The JSON data is cleaned, enriched and saved into a SQLite3 database `tunisair_delay.db` 
 - The airport data is enriched using the [pyairpots](https://github.com/NICTA/pyairports) module, thanks to [NICTA](https://github.com/NICTA) for providing the module.
+
 This process ensures that the data is always up-to-date and accurate, allowing for the most accurate analysis of flight performance.
 
 ### Data Analysis
@@ -44,11 +45,13 @@ This process ensures that the data is always up-to-date and accurate, allowing f
 - A daily query is performed on the SQLite3 database to extract the necessary data for analysis.
 - The `Pandas and `Matplotlib` frameworks are used to create visual representations of the data, such as plots and charts.
 - The `Pillow` package is used to generate a daily report using the visualizations created in the previous step.
+
 This process ensures that the report is always up-to-date, providing the most current information on Tunisair flight performance. The report will be easy to understand, as it is accompanied with visual representation of data.
 
 ### Twitter Posting
 - Once the daily report is generated, a tweet is automatically posted to the @Tunisairalert account, providing real-time updates on Tunisair's flight performance to followers.
 - The tweet will include a summary of the key performance indicators and a link to the full report for those who want to dive deeper into the data.
+
 This allows for easy dissemination of the report to a wider audience, and also allows for real-time monitoring of Tunisair's performance. The transparency of this process will make it easy for stakeholders to stay informed about the airline's performance.
 
 ### Server Management
