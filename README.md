@@ -3,11 +3,15 @@
 
 This repository contains the data pipeline and analysis to generate a daily key performance indicator report on Tunisair flight delays.
 
-The generated report target to illustrate the following:
+## Report Overview
+
+The generated report includes:
+
 - The count of departure delays that Tunisair has made
-- The min, max, and average delays for departures and arrival  (in minutes) 
+- The min, max, and average delays for departures and arrival (in minutes)
 - A bar chart to compare performance between Tunisair, Nouvelair, Airfrance (& Transavia)
-- The report will be published daily at 9 a.m _Europe/Paris timezone_ on the Twitter account [@Tunisairalert](https://twitter.com/Tunisairalert) 
+- The report will be published daily at 9 a.m Europe/Paris timezone on the Twitter account [@Tunisairalert](https://twitter.com/Tunisairalert) 
+
 
 ![Tunisair alert report Preview](https://i.ibb.co/n0sgBB4/01-08-2022-report.png)
 
@@ -27,19 +31,25 @@ The generated report target to illustrate the following:
 ---
 
 ## Features
-### Data ingestion
-The tasks will be CRON TABBED each hour from 7. am to midnight.
-- An API request will be performed on [Airlabs](https://airlabs.co/) API to get the data in JSON format
-- The JSON data will be cleaned, and enriched then saved into `tunisair_delay.db` (Sqlite3)
-- The airport data with be enriched with [pyairpots](https://github.com/NICTA/pyairports) module. Thanks to [NICTA](https://github.com/NICTA)
+
+### Data Ingestion
+- The tasks are scheduled to run hourly from 7 am to midnight using CRON.
+- An API request is made to [Airlabs](https://airlabs.co/)  to gather data in JSON format.
+- The JSON data is cleaned, enriched and saved into a SQLite3 database `tunisair_delay.db` 
+- The airport data is enriched using the [pyairpots](https://github.com/NICTA/pyairports) module, thanks to [NICTA](https://github.com/NICTA) for providing the module.
+This process ensures that the data is always up-to-date and accurate, allowing for the most accurate analysis of flight performance.
 
 ### Data Analysis
-The tasks will be CRON TABBED every day at 9 a.m Paris/Timezone.
-- A daily query will be performed on the SQL Table to create the needed plots using `Pandas` and `Matplotlib` frameworks
-- Once the plots are ready, with `Pillow` package the daily report will be 
-  
-### Twitter posting
-- Once the report generated a tweet will be posted on Tunisair performance
+- The tasks are scheduled to run every day at 9 a.m Paris/Timezone using CRON.
+- A daily query is performed on the SQLite3 database to extract the necessary data for analysis.
+- The `Pandas and `Matplotlib` frameworks are used to create visual representations of the data, such as plots and charts.
+- The `Pillow` package is used to generate a daily report using the visualizations created in the previous step.
+This process ensures that the report is always up-to-date, providing the most current information on Tunisair flight performance. The report will be easy to understand, as it is accompanied with visual representation of data.
+
+### Twitter Posting
+- Once the daily report is generated, a tweet is automatically posted to the @Tunisairalert account, providing real-time updates on Tunisair's flight performance to followers.
+- The tweet will include a summary of the key performance indicators and a link to the full report for those who want to dive deeper into the data.
+This allows for easy dissemination of the report to a wider audience, and also allows for real-time monitoring of Tunisair's performance. The transparency of this process will make it easy for stakeholders to stay informed about the airline's performance.
 
 ### Server Management
 - Since the script will be hosted on a personal server using `FreeBSD`, a FTP script is made to update local `.db` data
@@ -50,8 +60,8 @@ The tasks will be CRON TABBED every day at 9 a.m Paris/Timezone.
 
 ---
 ## Configuration
-- You need to grab a Token from airlabs.co and past it into `.env` located in the root folder
-- You also need to grab Twitter API codes [See tutorial](https://www.mattcrampton.com/blog/step_by_step_tutorial_to_post_to_twitter_using_python_part_two-posting_with_photos/) and past the information in `.env`
+- You need to obtain a token from airlabs.co and add it to the `.env` file located in the root directory of the project.
+- You also need to obtain Twitter API codes and add them to the `.env` file. [See tutorial](https://www.mattcrampton.com/blog/step_by_step_tutorial_to_post_to_twitter_using_python_part_two-posting_with_photos/) and past the information in `.env`
 
 The `.env` file will loke like this
 ```
