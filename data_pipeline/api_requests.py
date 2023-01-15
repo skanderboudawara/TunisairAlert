@@ -17,7 +17,7 @@ def fatal_code(error_code):
 
     ::returns: (bool), error value response
     """
-    return 400 <= error_code.response.status_code < 500
+    return 400 <= error_code.status_code < 500
 
 
 class AirLabsData(SqlManager):

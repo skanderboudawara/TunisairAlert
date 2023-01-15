@@ -12,7 +12,7 @@ import pytz
 import tweepy
 from dotenv import load_dotenv, set_key
 
-from src.airports import Airports
+from src.airports import AirportNotFoundException, Airports
 
 TUNISIA_TZ = "Africa/Tunis"
 
@@ -257,7 +257,7 @@ def get_airport_country(airport_iata: str) -> str:
 
     try:
         return remove_non_alphanumeric(Airports().lookup(airport_iata).country.upper())
-    except ValueError:
+    except AirportNotFoundException:
         return "UNKNOWN"
 
 
@@ -277,7 +277,7 @@ def get_airport_name(airport_iata: str) -> str:
 
     try:
         return remove_non_alphanumeric(Airports().lookup(airport_iata).name.upper())
-    except ValueError:
+    except AirportNotFoundException:
         return "UNKNOWN"
 
 
