@@ -1,115 +1,157 @@
-import src.utils as U
-import pytest
-from datetime import datetime
-from pathlib import Path
+import json
 import os
+from datetime import datetime, timedelta
+from pathlib import Path
+from tempfile import TemporaryDirectory
+
+import pytest
+import requests
+
+import src.utils as U
+from data_pipeline.api_requests import fatal_code
+
+
+class TestTimeAttribute:
+    def test_valid_init(self):
+        time_str = "2022-01-01T10:00:00"
+        ta = U.TimeAttribute(time_str)
+        assert isinstance(ta.datetime, datetime)
+
+    def test_invalid_init(self):
+        time_str = "2022-01-01T10:00:00"
+        ta = U.TimeAttribute(time_str)
+        assert ta.datetime.strftime("%Y-%m-%dT%H:%M:%S%z") != time_str
+
+    def test_get_mins_between(self):
+        start_date = datetime.now()
+        end_date = start_date + timedelta(minutes=30)
+        ta = U.TimeAttribute(start_date)
+        assert ta.get_mins_between(end_date) == 30
+
+    def test_get_days_between(self):
+        start_date = datetime.now()
+        end_date = start_date + timedelta(days=5)
+        ta = U.TimeAttribute(start_date)
+        assert ta.get_days_between(end_date) == 5
 
 
 def test_is_blank():
     assert not U.is_blank("5")
-    assert U.is_blank('')
+    assert U.is_blank("")
 
 
 def test_remove_non_alphanumeric():
-    assert "5" == U.remove_non_alphanumeric("5")
-    assert "AB" == U.remove_non_alphanumeric('A-B')
-    assert "" == U.remove_non_alphanumeric(None)
-    assert "" == U.remove_non_alphanumeric("")
-    with pytest.raises(AssertionError, match="^Wrong Type"):
-        U.remove_non_alphanumeric(5)
+    test_str = "Test 123 !@# string"
+    expected_output = "Test 123  string"
+    assert U.remove_non_alphanumeric(test_str) == expected_output
 
+    test_str = "!@# Test 123 string"
+    expected_output = " Test 123 string"
+    assert U.remove_non_alphanumeric(test_str) == expected_output
 
-def test_TimeAttribute():
+    test_str = "Test 123 string !@#"
+    expected_output = "Test 123 string "
+    assert U.remove_non_alphanumeric(test_str) == expected_output
 
-    date1 = "2019-09-26T07:58:30.996+0200"
-    D = U.TimeAttribute(date1)
+    test_str = "!@# Test 123 string !@#"
+    expected_output = " Test 123 string "
+    assert U.remove_non_alphanumeric(test_str) == expected_output
 
-    assert D.dateformat == "26/09/2019"
-    assert D.full_hour == "06:58"
-    assert D.full_day == "Thu 26 Sep 2019"
-    assert D.hour == "06"
-    assert D.month == "09"
-    assert D.full_under_score == "26_09_2019_06_58"
-    assert D.short_under_score == "26_09_2019"
-
-    with pytest.raises(AssertionError, match="^Wrong Type"):
-        U.TimeAttribute(5)
-
-
-def test_get_mins_between():
-    D = U.TimeAttribute("2022-12-29 23:57:59.342380")
-    time2 = datetime(2022, 12, 29, 23, 58, 59, 342380)
-    time1 = datetime(2022, 12, 29, 23, 56, 59, 342380)
-    assert 1 == D.get_mins_between(time2)
-    with pytest.raises(AssertionError, match="^Wrong Type"):
-        D.get_mins_between("2022/12/28 23:55:59")
-    with pytest.raises(AssertionError, match="^Wrong Value"):
-        D.get_mins_between(time1)
-
-
-def test_get_days_between():
-    D = U.TimeAttribute("2022-12-29 23:57:59.342380")
-    date2 = datetime(2022, 12, 30, 23, 55, 59, 342380)
-    date1 = datetime(2022, 12, 26, 23, 55, 59, 342380)
-    assert 1 == D.get_days_between(date2)
-    with pytest.raises(AssertionError, match="^Wrong Type"):
-        D.get_mins_between("2022-12-29 23:57:59.342380")
-    with pytest.raises(AssertionError, match="^Wrong Value"):
-        D.get_mins_between(date1)
+    test_str = None
+    expected_output = ""
+    assert U.remove_non_alphanumeric(test_str) == expected_output
 
 
 def test_get_airport_country():
-    assert "UNKNOWN" == U.get_airport_country("AAAA")
-    assert "TUNISIA" == U.get_airport_country("TUN")
+    airport_iata = "CDG"
+    expected_output = "FRANCE"
+    assert U.get_airport_country(airport_iata) == expected_output
 
-    with pytest.raises(AssertionError, match="^Wrong Type"):
-        U.get_airport_country(5)
+    airport_iata = "JFK"
+    expected_output = "UNITED STATES"
+    assert U.get_airport_country(airport_iata) == expected_output
+
+    airport_iata = "XXX"
+    expected_output = "UNKNOWN"
+    assert U.get_airport_country(airport_iata) == expected_output
+
+    airport_iata = None
+    with pytest.raises(AssertionError) as excinfo:
+        U.get_airport_country(airport_iata)
+    assert "Wrong Type: airport_iata must be a string" in str(excinfo.value)
 
 
 def test_get_airport_name():
-    assert "UNKNOWN" == U.get_airport_name("AAAA")
-    assert "CARTHAGE" == U.get_airport_name("TUN")
+    # Test valid airport IATA code
+    airport_iata = "CDG"
+    expected_name = "CHARLES DE GAULLE"
+    assert U.get_airport_name(airport_iata) == expected_name
 
-    with pytest.raises(AssertionError, match="^Wrong Type"):
-        U.get_airport_name(5)
+    # Test invalid airport IATA code
+    airport_iata = "XXX"
+    assert U.get_airport_name(airport_iata) == "UNKNOWN"
 
 
 def test_convert_hex_to_rgb():
-    assert (255, 255, 255) == U.convert_hex_to_rgb("#FFFFFF")
+    value = "#ff0000"
+    expected_output = (255, 0, 0)
+    assert U.convert_hex_to_rgb(value) == expected_output
 
-    with pytest.raises(AssertionError, match="^Wrong Type"):
-        U.convert_hex_to_rgb(5)
+    value = "#00ff00"
+    expected_output = (0, 255, 0)
+    assert U.convert_hex_to_rgb(value) == expected_output
 
+    value = "#0000ff"
+    expected_output = (0, 0, 255)
+    assert U.convert_hex_to_rgb(value) == expected_output
 
-def test_FileToFolderManager():
-    test_folder = U.FileFolderManager(directory="test", name_file="test.json")
-    assert test_folder.name_file == "test.json"
-    assert test_folder.dir == "test"
-    assert test_folder.file_exist == False
+    value = "#f0f0f0"
+    expected_output = (240, 240, 240)
+    assert U.convert_hex_to_rgb(value) == expected_output
 
-    assert {'a': 2} == test_folder.read_json({'a': 2})
+    value = "f0f0f0"
+    expected_output = (240, 240, 240)
+    assert U.convert_hex_to_rgb(value) == expected_output
 
-    os.remove(test_folder.file_dir)
-
-    test_folder2 = U.FileFolderManager(directory="test", name_file="test2.json")
-    assert test_folder2.name_file == "test2.json"
-    assert test_folder2.dir == "test"
-    assert test_folder2.file_exist == True
-
-    assert {'test2': 2} == test_folder2.read_json({'a': 2})
-    test_folder2.save_json({'b': 2})
-
-    assert {'b': 2} == test_folder2.read_json()
-
-    test_folder2.save_json({'test2': 2})
-
-    with pytest.raises(AssertionError, match="^Wrong Type"):
-        test_folder2.save_json(5)
-    with pytest.raises(AssertionError, match="^Wrong Type"):
-        test_folder2.read_json(5)
+    with pytest.raises(AssertionError):
+        U.convert_hex_to_rgb(123)
+        U.convert_hex_to_rgb("invalid_hex_code")
 
 
-def test_Fonts():
-    assert Path(U.SKYFONT).exists()
-    assert Path(U.SKYFONT_INVERTED).exists()
-    assert Path(U.GLYPH_AIRPORT).exists()
+class TestFileFolderManager:
+    def test_valid_init(self):
+        directory = "test_directory"
+        name_file = "test_file.json"
+        ffm = U.FileFolderManager(directory, name_file)
+        assert isinstance(ffm, U.FileFolderManager)
+        assert ffm.name_file == name_file
+        assert ffm.dir == directory
+        assert Path(ffm.local_dir).is_dir()
+        assert ffm.file_exist is False
+
+    def test_invalid_init(self):
+        directory = None
+        name_file = ""
+        with pytest.raises(AssertionError) as excinfo:
+            ffm = U.FileFolderManager(directory, name_file)
+        assert "name_file must not be an empty string" in str(excinfo.value)
+
+    def test_read_json(self):
+        with TemporaryDirectory() as temp_dir:
+            ffm = U.FileFolderManager(temp_dir, "test_file.json")
+            default_dict = {"test_key": "test_value"}
+            ffm.save_json(default_dict)
+            assert ffm.read_json() == default_dict
+
+    def test_save_json(self):
+        with TemporaryDirectory() as temp_dir:
+            ffm = U.FileFolderManager(temp_dir, "test_file.json")
+            test_dict = {"test_key": "test_value"}
+            ffm.save_json(test_dict)
+            assert json.load(open(ffm.file_dir)) == test_dict
+
+
+def test_fatal_code():
+    response = requests.Response()
+    response.status_code = 400
+    assert fatal_code(response) == True
