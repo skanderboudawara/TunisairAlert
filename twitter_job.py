@@ -1,8 +1,5 @@
 """
-Clean the SQL table of yesterday
-Generate the report of yesterday
-Generate the tweet text
-Post the twitter at 9.am
+Clean the SQL table of yesterday, Generate the report of yesterday, Generate the tweet text and post the twitter at 9am.
 """
 from datetime import datetime, timedelta
 

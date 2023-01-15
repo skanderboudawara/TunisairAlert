@@ -7,12 +7,7 @@ import sqlite3
 import time
 
 from src.const import DEFAULT_TABLE, FLIGHT_TABLE_COLUMNS, SQL_TABLE_NAME
-from src.utils import (
-    FileFolderManager,
-    TimeAttribute,
-    correct_datetime_info,
-    get_env,
-)
+from src.utils import FileFolderManager, TimeAttribute, correct_datetime_info, get_env
 
 
 class SqlManager:
@@ -22,9 +17,7 @@ class SqlManager:
 
     def __init__(self):
         self.filename = get_env("file_name")
-        self.path_sql_db = FileFolderManager(
-            directory="data_pipeline/", name_file=self.filename
-        ).file_dir
+        self.path_sql_db = FileFolderManager(directory="data_pipeline/", name_file=self.filename).file_dir
         self.execution = self.execute_sql(
             f"""
             CREATE TABLE  if not exists {SQL_TABLE_NAME}
@@ -34,16 +27,13 @@ class SqlManager:
 
     def execute_sql(self, sql=None, fetchmethod=None):
         """
-        Function to execute and SQL and return
-        - The query
-        - Or Fetchone
-        - or FetchAll
+        Execute an SQL query and return the results.
 
-        :param sql (str): the SQL code
-        :param fetchmethod (str, optional): the fetch method. Defaults to None.
-
-        :returns: (list) the query or the fetch
+        :param sql: (str) The SQL query to be executed.
+        :param fetchmethod: (str, optional) The method to use to retrieve the results. Can be "fetchone" or "fetchall". Default is None, which returns the query object.
+        :return: (list) The query results.
         """
+
         conn = sqlite3.connect(self.path_sql_db)
         cursor = conn.cursor()
         sql_execute = cursor.execute(sql)
@@ -58,11 +48,10 @@ class SqlManager:
 
     def insert_in_table(self, values: tuple):
         """
-        Function to insert new item in the SQL Table
+        Insert a new item into the SQL table.
 
-        :parm: values (tuple): a tuple of all values to be inserted
-
-        :returns: None
+        :param values: (tuple) A tuple of values to be inserted into the table.
+        :return: None
         """
         self.execute_sql(
             f"""
@@ -73,12 +62,12 @@ class SqlManager:
 
     def update_table(self, key: str, values: tuple):
         """
-        Function to update an item if Table exists & if item exists
+        Update an item in the SQL table.
+        If the item does not exist, it will be inserted instead.
 
-        :parm key (str): is the key id
-        :parm values (tuple): a tuple of all the values to be updated
-
-        :returns: None
+        :param key: (str) The key (ID) of the item to be updated.
+        :param values: (tuple) A tuple of values to update the item with.
+        :return: None
         """
         if self.check_key(key):
             cross_col = ""
@@ -96,11 +85,10 @@ class SqlManager:
 
     def check_key(self, key: str):
         """
-        Function to check if an item exists in a SQL Table
+        Check if an item with the given key exists in the SQL table.
 
-        :param key (str): the id key
-
-        :returns: (bool), return true or false if key found
+        :param key: (str) The key (ID) of the item to check for.
+        :return: (bool) True if the key exists in the table, False otherwise.
         """
         check = self.execute_sql(
             f"""
@@ -115,11 +103,10 @@ class SqlManager:
 
     def id_keys(self, condition=""):
         """
-        Function to correct or fill an empty new created column
+        Retrieve a list of all keys (ID) in the SQL table, with an optional condition.
 
-        :param condition (str, optional): to create a condition of Where if needed. Defaults to "".
-
-        :returns: (list), list of all Key (meeting condition optional)
+        :param condition: (str, optional) An optional SQL WHERE clause to filter the keys by. Default is an empty string.
+        :return: (list) A list of all keys that meet the given condition.
         """
         fetch_all = self.execute_sql(
             f"""
@@ -134,13 +121,12 @@ class SqlManager:
 
     def modify_column(self, col_name_input: str, col_name_output: str, func):
         """
-        Function to correct or fill an empty new created column
+        Modify the values of a column by applying a function to the values of another column.
 
-        :param col_name_input (str):  the column to extract information from
-        :param col_name_output (str): the column to modify
-        :param func (function): a function that will be applied on @col_name_input and outputted in @col_name_output
-
-        :returns: None
+        :param col_name_input: (str) The name of the column to extract values from.
+        :param col_name_output: (str) The name of the column to modify.
+        :param func: (function) A function to apply on the values of col_name_input and output in col_name_output.
+        :return: None
         """
         keys = self.id_keys()
         for key in keys:
@@ -153,9 +139,7 @@ class SqlManager:
                 "fetchone",
             )[0]
             output = func(values)
-            self.execute_sql(
-                f'UPDATE {SQL_TABLE_NAME} SET {col_name_output}="{output}" WHERE ID_FLIGHT="{key}"'
-            )
+            self.execute_sql(f'UPDATE {SQL_TABLE_NAME} SET {col_name_output}="{output}" WHERE ID_FLIGHT="{key}"')
 
     def clean_sql_table(self, datetime_query):
         """
@@ -163,7 +147,7 @@ class SqlManager:
         dep_hour, departure_date, flight_status, departure_delay
         arr_hour, arrival_date, flight_status, arrival_delay
 
-        :param datetime_query (str): datetime of query
+        :param datetime_query: (str) datetime of query
 
         :returns: None
         """
@@ -171,18 +155,15 @@ class SqlManager:
         time.sleep(1)
         query_date = TimeAttribute(datetime_query).dateformat
         keys = self.id_keys(f'WHERE (DEPARTURE_DATE = "{query_date}")')
-        pragma = self.execute_sql(
-            f"PRAGMA table_info({SQL_TABLE_NAME})", "fetchall"
-        )
+        pragma = self.execute_sql(f"PRAGMA table_info({SQL_TABLE_NAME})", "fetchall")
         cols = [column[1] for column in pragma]
 
         def column_index(col_name):
             """
-            get Column name and return its position
+            Get the index of a column in a table
 
-            :param col_name (str): column name
-
-            :returns: (int), the int position
+            :param col_name: (str) the name of the column
+            :return: (int) the index of the column in the table
             """
             return cols.index(col_name)
 
@@ -201,12 +182,7 @@ class SqlManager:
 
             # datetime_actual, datetime_estimated, datetime_scheduled, flight_status, datetime_delay, text
             # dep_hour, departure_date, flight_status, departure_delay
-            (
-                values[column_index("DEPARTURE_HOUR")],
-                values[column_index("DEPARTURE_DATE")],
-                values[column_index("FLIGHT_STATUS")],
-                values[column_index("DEPARTURE_DELAY")],
-            ) = correct_datetime_info(
+            (values[column_index("DEPARTURE_HOUR")], values[column_index("DEPARTURE_DATE")], values[column_index("FLIGHT_STATUS")], values[column_index("DEPARTURE_DELAY")],) = correct_datetime_info(
                 datetime_actual=values[column_index("DEPARTURE_ACTUAL")],
                 datetime_estimated=values[column_index("DEPARTURE_ESTIMATED")],
                 datetime_scheduled=values[column_index("DEPARTURE_SCHEDULED")],
@@ -216,12 +192,7 @@ class SqlManager:
             )
 
             # arr_hour, arrival_date, flight_status, arrival_delay
-            (
-                values[column_index("ARRIVAL_HOUR")],
-                values[column_index("ARRIVAL_DATE")],
-                values[column_index("FLIGHT_STATUS")],
-                values[column_index("ARRIVAL_DELAY")],
-            ) = correct_datetime_info(
+            (values[column_index("ARRIVAL_HOUR")], values[column_index("ARRIVAL_DATE")], values[column_index("FLIGHT_STATUS")], values[column_index("ARRIVAL_DELAY")],) = correct_datetime_info(
                 datetime_actual=values[column_index("ARRIVAL_ACTUAL")],
                 datetime_estimated=values[column_index("ARRIVAL_ESTIMATED")],
                 datetime_scheduled=values[column_index("ARRIVAL_SCHEDULED")],
@@ -238,16 +209,18 @@ class SqlManager:
 
     def import_ftp_sqldb(self):
         """
-        To pull the SQL Table from the FTP servera
-        Credentials are saved in /credentials/ftp.json
+        This method connects to the FTP server using the credentials saved in the credentials/ftp.json file.
+        It then changes the working directory to the specified path, retrieves the SQLite database file with the specified filename, and writes it to the specified path on the local machine.
+
+        :param: None
+
+        :returns: None
         """
         path = get_env("path")
         ftp = ftplib.FTP(get_env("ip_adress"))
         ftp.login(get_env("login"), get_env("password"))
         ftp.cwd(path)
-        ftp.retrbinary(
-            f"RETR {self.filename}", open(self.path_sql_db, "wb").write
-        )
+        ftp.retrbinary(f"RETR {self.filename}", open(self.path_sql_db, "wb").write)
         ftp.quit()
 
         print("FTP DB imported")

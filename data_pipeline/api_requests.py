@@ -6,15 +6,7 @@ import backoff
 import requests  # APIs
 
 from data_pipeline.sql_functions import SqlManager  # SQL interactions
-from src.utils import (
-    FileFolderManager,
-    TimeAttribute,
-    correct_datetime_info,
-    get_airport_country,
-    get_airport_name,
-    get_env,
-    get_flight_key,
-)
+from src.utils import FileFolderManager, TimeAttribute, correct_datetime_info, get_airport_country, get_airport_name, get_env, get_flight_key
 
 
 def fatal_code(error_code):
@@ -30,7 +22,15 @@ def fatal_code(error_code):
 
 class AirLabsData(SqlManager):
     """
-    Airlabs Management class
+    A class for managing data related to airlabs.
+    Subclass of SqlManager, which is responsible for executing database queries.
+    This class also handles file management for json data files of arrival and departure flights.
+
+
+    :param datetime_query: (datetime), The date and time to query the data for.
+    :param force_update: (bool), A flag to indicate whether to force an update of the data. If set to True, the data will be retrieved from the database, even if it already exists in the json files. Default is False.
+
+    :returns: None
     """
 
     def __init__(self, datetime_query, force_update=None):
@@ -50,23 +50,15 @@ class AirLabsData(SqlManager):
 
     def execute_force_update(self, force_update):
         """
-        to save api response
+        Execute force update for the json files containing arrival and departure flight data.
+        If the `force_update` flag is set to True, the data will be retrieved from the API and saved to the json files, even if the data already exists in the files.
 
-        :param force_update: (bool), True will force the update
-
-        :returns: none
+        :param force_update: (bool) A flag to indicate whether to force an update of the data. If set to True, the data will be retrieved from the API and saved to the json files.
+        :return: None
         """
         if force_update:
-            self.file_arrival.save_json(
-                self.get_json_api(
-                    "departure", "TUN", ["TU", "BJ", "AF", "TO"]
-                ).json()
-            )
-            self.file_departure.save_json(
-                self.get_json_api(
-                    "arrival", "TUN", ["TU", "BJ", "AF", "TO"]
-                ).json()
-            )
+            self.file_arrival.save_json(self.get_json_api("departure", "TUN", ["TU", "BJ", "AF", "TO"]).json())
+            self.file_departure.save_json(self.get_json_api("arrival", "TUN", ["TU", "BJ", "AF", "TO"]).json())
 
     @backoff.on_exception(
         backoff.expo,
@@ -74,35 +66,31 @@ class AirLabsData(SqlManager):
         max_time=300,
         giveup=fatal_code,
     )
-    def get_json_api(
-        self, type_flight: str, airport_iata: str, airline_iata=None
-    ):
+    def get_json_api(self, type_flight: str, airport_iata: str, airline_iata=None):
         """
-        To make the API Request
+        Retrieve flight data from the API in JSON format.
 
-        :param type_flight: (str), DEPARTURE or ARRIVAL
-        :param airport_iata: (str), IATA code of airport
-        :param airline_iata: (list(str), optional), LIST of airline IATA codes (List of strings). Defaults to None.
-
-        :returns: (dict), the JSON pulled from the API
+        :param type_flight: (str) The type of flight to retrieve data for. Can be either "DEPARTURE" or "ARRIVAL".
+        :param airport_iata: (str) The IATA code of the airport to retrieve data for.
+        :param airline_iata: (list(str), optional) A list of IATA codes of airlines to filter the data by. Default is None.
+        :return: (requests.Response) The JSON response of the API request
         """
+
         _token = get_env("token_airlab")
+
         assert isinstance(_token, str), "_token must be a string"
         assert _token.strip() != "", "_token must not be an empty string"
         assert isinstance(airport_iata, str), "airport_iata must be a string"
-        assert (
-            airport_iata.strip() != ""
-        ), "airport_iata must not be an empty string"
+        assert isinstance(type_flight, str), "airport_iata must be a string"
+        assert type_flight in {
+            "DEPARTURE",
+            "ARRIVAL",
+        }, "type_flight must be either 'DEPARTURE' or 'ARRIVAL'"
+        assert airport_iata.strip() != "", "airport_iata must not be an empty string"
 
         print("getting json API")
         if airline_iata:
-            airline_iata = (
-                f"&airline_iata={airline_iata}"
-                if isinstance(airline_iata, str)
-                else "".join(
-                    [f"&airline_iata={airline}" for airline in airline_iata]
-                )
-            )
+            airline_iata = f"&airline_iata={airline_iata}" if isinstance(airline_iata, str) else "".join([f"&airline_iata={airline}" for airline in airline_iata])
 
         else:
             airline_iata = ""
@@ -111,10 +99,9 @@ class AirLabsData(SqlManager):
 
     def get_arrivals(self):
         """
-        Will get the arrival
+        Retrieve and process arrival flight data.
 
         :param: None
-
         :return: None
         """
         json_flight = None
@@ -125,10 +112,10 @@ class AirLabsData(SqlManager):
 
     def get_departures(self):
         """
-        Will get the depatures
+        Process flight data from the API response.
+        Extracts relevant information and performs data cleaning and enrichment.
 
-        :param: None
-
+        :param json_flight: (dict) The JSON flight data from the API response.
         :return: None
         """
         json_flight = None
@@ -166,23 +153,13 @@ class AirLabsData(SqlManager):
 
             # Handling if exist
             # Data cleaning
-            departure_estimated = (
-                flight["dep_estimated"] if "dep_estimated" in flight else ""
-            )
-            arrival_estimated = (
-                flight["arr_estimated"] if "arr_estimated" in flight else ""
-            )
-            departure_actual = (
-                flight["dep_actual"] if "dep_actual" in flight else ""
-            )
-            arrival_actual = (
-                flight["arr_actual"] if "arr_actual" in flight else ""
-            )
+            departure_estimated = flight["dep_estimated"] if "dep_estimated" in flight else ""
+            arrival_estimated = flight["arr_estimated"] if "arr_estimated" in flight else ""
+            departure_actual = flight["dep_actual"] if "dep_actual" in flight else ""
+            arrival_actual = flight["arr_actual"] if "arr_actual" in flight else ""
             departure_delay = flight["delayed"] if "delayed" in flight else 0
             arrival_delay = flight["delayed"] if "delayed" in flight else 0
-            departure_delay = (
-                0 if departure_delay is None else int(departure_delay)
-            )
+            departure_delay = 0 if departure_delay is None else int(departure_delay)
             arrival_delay = 0 if arrival_delay is None else int(arrival_delay)
 
             ##################################################
@@ -192,12 +169,7 @@ class AirLabsData(SqlManager):
             # correction of departure delay
             ##################################################
 
-            (
-                dep_hour,
-                departure_date,
-                flight_status,
-                departure_delay,
-            ) = correct_datetime_info(
+            (dep_hour, departure_date, flight_status, departure_delay,) = correct_datetime_info(
                 departure_actual,
                 departure_estimated,
                 departure_scheduled,
@@ -208,12 +180,7 @@ class AirLabsData(SqlManager):
             ##################################################
             # Correction of arrival delay
             ##################################################
-            (
-                arr_hour,
-                arrival_date,
-                flight_status,
-                arrival_delay,
-            ) = correct_datetime_info(
+            (arr_hour, arrival_date, flight_status, arrival_delay,) = correct_datetime_info(
                 arrival_actual,
                 arrival_estimated,
                 arrival_scheduled,

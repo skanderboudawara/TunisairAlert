@@ -1,7 +1,5 @@
 """
-Daily Cron from 7am to Midnight to pull data from the API
-Clean the SQL
-generate the report
+Daily Cron job from 7am to Midnight to pull data from the API, clean the SQL and generate the report.
 """
 from datetime import datetime
 

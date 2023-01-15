@@ -35,9 +35,13 @@ GLYPH_AIRPORT = path_dir("src/fonts/GlyphyxOneNF.ttf")
 
 def get_env(env_token):
     """
-    To read .txt file
+    Get the environment variable from the .env file
 
-    :return: None if .txt file empty, else the text of the .txt file
+    :param env_token: (str) the environment variable to fetch
+    :return: (str) the value of the environment variable
+
+    :raises AssertionError: if env_token is not a string or is empty
+    :raises AssertionError: if the env_token does not exist or is empty in the .env file
     """
     assert isinstance(env_token, str), "Wrong Type: env_token must be a string"
     assert env_token.strip() != "", "Wrong Value: env_token must not be empty"
@@ -69,12 +73,8 @@ def get_env(env_token):
 
     load_dotenv(path_env)
 
-    assert (
-        os.getenv(env_token) is not None
-    ), f"Wrong Value: {env_token} do not exist"
-    assert (
-        os.getenv(env_token).strip() != ""
-    ), f"Wrong Value: {env_token} must not be empty"
+    assert os.getenv(env_token) is not None, f"Wrong Value: {env_token} do not exist"
+    assert os.getenv(env_token).strip() != "", f"Wrong Value: {env_token} must not be empty"
 
     return os.getenv(env_token)
 
@@ -115,32 +115,30 @@ class FileFolderManager:
 
     def read_json(self, default=None):
         """
-        to read the JSON file
+        Reads a JSON file and returns its content as a python dictionary.
+        If the file does not exist, it creates the file with the provided default dictionary.
 
-        :param default: (dict), default dict to save in JSON file. defaults to None
-        :return: either the saved dict in JSON or the default one
+        :param default: (dict), default dictionary to save in JSON file if the file does not exist. Defaults to None.
+        :return: (dict) the content of the JSON file.
         """
 
         if default is None:
             default = {}
-        assert isinstance(
-            default, dict
-        ), "Wrong Type: default must be a dictionary"
+        assert isinstance(default, dict), "Wrong Type: default must be a dictionary"
 
         with open(self.file_dir, "r", encoding="UTF-8") as file_json:
             return json.load(file_json)
 
     def save_json(self, dict_f):
         """
-        To save the dict in a json file
+        Save the given dictionary to a JSON file.
 
-        :param dict_f: (dict), the dict to save in JSON file
+        :param dict_f: (dict) The dictionary to be saved in the JSON file.
+        :raises TypeError: If the input is not a dictionary.
         """
         if dict_f is None:
             dict_f = {}
-        assert isinstance(
-            dict_f, dict
-        ), "Wrong Type: dict_f must be a dictionary"
+        assert isinstance(dict_f, dict), "Wrong Type: dict_f must be a dictionary"
 
         with open(self.file_dir, "w+", encoding="UTF-8") as file_json:
             json.dump(dict_f, file_json, indent=4)
@@ -148,33 +146,29 @@ class FileFolderManager:
 
 class TimeAttribute:
     """
-    class for Date manipulation and date information
-    with the adequate Timezone
+    class for manipulating and extracting date and time information,
+    with the appropriate timezone.
+
+    :param time_str: (str, optional) the time in string format, defaults to None.
     """
 
     def __init__(self, time_str=None):
         """
-        To init Type of data
+        Initialize the class and set the timezone.
 
-        :param time_str: (str, optional), Type of day format defaults to None
+        :param time_str: (str, optional) the time in string format, defaults to None.
         """
 
         self.pytz_tn = pytz.timezone(TUNISIA_TZ)
 
         self.today = datetime.now().astimezone(self.pytz_tn)
 
-        self.yesterday = (datetime.now() - timedelta(days=1)).astimezone(
-            self.pytz_tn
-        )
+        self.yesterday = (datetime.now() - timedelta(days=1)).astimezone(self.pytz_tn)
 
         if time_str:
-            assert isinstance(
-                time_str, (str, datetime)
-            ), "Wrong Type: time_str must be a string or datetime"
+            assert isinstance(time_str, (str, datetime)), "Wrong Type: time_str must be a string or datetime"
             if isinstance(time_str, str):
-                self.datetime = datetime.fromisoformat(time_str).astimezone(
-                    self.pytz_tn
-                )
+                self.datetime = datetime.fromisoformat(time_str).astimezone(self.pytz_tn)
             else:
                 self.datetime = time_str.astimezone(self.pytz_tn)
             self.dateformat = self.datetime.strftime("%d/%m/%Y")
@@ -187,23 +181,16 @@ class TimeAttribute:
 
     def get_mins_between(self, end_date):
         """
-        function to calculate how many minutes separate start and end
+        Calculate the number of minutes between two dates.
 
-        :param start_date (Datetime): start date
-        :param end_date (Datetime): end date
-
-        ::returns: (Datetime), minutes between 2 dates
+        :param end_date: (datetime) The end date as a datetime object
+        :returns: (float) Number of minutes between the start and end date
+        :raises: AssertionError if start_date is not a datetime, end_date is not a datetime, end_date is earlier than start_date
         """
 
-        assert isinstance(
-            self.datetime, datetime
-        ), "Wrong Type: start_date must be a datetime"
-        assert isinstance(
-            end_date, datetime
-        ), "Wrong Type: end_date must be a datetime"
-        assert end_date.astimezone(None) >= self.datetime.astimezone(
-            None
-        ), "Wrong Value: end_date must be later than start_date"
+        assert isinstance(self.datetime, datetime), "Wrong Type: start_date must be a datetime"
+        assert isinstance(end_date, datetime), "Wrong Type: end_date must be a datetime"
+        assert end_date.astimezone(None) >= self.datetime.astimezone(None), "Wrong Value: end_date must be later than start_date"
         time_in_sec = end_date.astimezone(None) - self.datetime.astimezone(None)
         return time_in_sec.total_seconds() / 60
 
@@ -211,22 +198,16 @@ class TimeAttribute:
         """
         function to calculate how many days separate start and end
 
-        :param start_date: (Datetime), start date
-        :param end_date: (Datetime), end date
-
-        ::returns: (Datetime), number of days in between
+        :param start_date: (datetime), start date
+        :param end_date: (datetime), end date
+        :raises AssertionError: if start_date is not a datetime, end_date is not a datetime or end_date is earlier than start_date.
+        :returns: (int), number of days in between
         """
 
-        assert isinstance(
-            self.datetime, datetime
-        ), "Wrong Type: start_date must be a datetime"
-        assert isinstance(
-            end_date, datetime
-        ), "Wrong Type: end_date must be a datetime"
+        assert isinstance(self.datetime, datetime), "Wrong Type: start_date must be a datetime"
+        assert isinstance(end_date, datetime), "Wrong Type: end_date must be a datetime"
         end_date = end_date.astimezone(self.pytz_tn)
-        assert end_date.astimezone(None) >= self.datetime.astimezone(
-            None
-        ), "Wrong Value: end_date must be later than start_date"
+        assert end_date.astimezone(None) >= self.datetime.astimezone(None), "Wrong Value: end_date must be later than start_date"
         end_date = end_date.replace(hour=0, minute=0, second=0, microsecond=0)
         time_in_sec = end_date.astimezone(None) - self.datetime.astimezone(None)
         return time_in_sec.days + 1
@@ -234,11 +215,10 @@ class TimeAttribute:
 
 def is_blank(my_string):
     """
-    to test if the string is blank
+    Check if a given string is blank. A string is considered blank if it is empty or contains only whitespace characters.
 
-    :param myString: (str), string to test
-
-    ::returns: (bool), True if blank False if not blank
+    :param my_string: (str) The string to check for blankness.
+    :return: (bool) True if the string is blank, False otherwise.
     """
     my_string = str(my_string)
 
@@ -255,9 +235,7 @@ def remove_non_alphanumeric(str_to_change):
     """
     if str_to_change is None:
         str_to_change = ""
-    assert isinstance(
-        str_to_change, str
-    ), "Wrong Type: str_to_change must be a str"
+    assert isinstance(str_to_change, str), "Wrong Type: str_to_change must be a str"
 
     return re.sub("[^A-Za-z0-9 ]", "", str_to_change)
 
@@ -270,19 +248,15 @@ def get_airport_country(airport_iata: str) -> str:
     I will handle errors if TUNISAIR made some unknown connections
 
     Data enrichment
-    :param airport_iata: (str), AIRPORT iata code
 
-    ::returns: (str), return the airport country
+    :param airport_iata: (str), AIRPORT iata code
+    :returns: (str), return the airport country
     """
 
-    assert isinstance(
-        airport_iata, str
-    ), "Wrong Type: airport_iata must be a string"
+    assert isinstance(airport_iata, str), "Wrong Type: airport_iata must be a string"
 
     try:
-        return remove_non_alphanumeric(
-            Airports().lookup(airport_iata).country.upper()
-        )
+        return remove_non_alphanumeric(Airports().lookup(airport_iata).country.upper())
     except ValueError:
         return "UNKNOWN"
 
@@ -299,14 +273,10 @@ def get_airport_name(airport_iata: str) -> str:
 
     ::returns: (str), return the airport name
     """
-    assert isinstance(
-        airport_iata, str
-    ), "Wrong Type: airport_iata must be a string"
+    assert isinstance(airport_iata, str), "Wrong Type: airport_iata must be a string"
 
     try:
-        return remove_non_alphanumeric(
-            Airports().lookup(airport_iata).name.upper()
-        )
+        return remove_non_alphanumeric(Airports().lookup(airport_iata).name.upper())
     except ValueError:
         return "UNKNOWN"
 
@@ -324,10 +294,7 @@ def convert_hex_to_rgb(value: str) -> tuple:
 
     value = value.lstrip("#")
     hexa_value = len(value)
-    return tuple(
-        int(value[i : i + hexa_value // 3], 16)
-        for i in range(0, hexa_value, hexa_value // 3)
-    )
+    return tuple(int(value[i : i + hexa_value // 3], 16) for i in range(0, hexa_value, hexa_value // 3))
 
 
 def correct_datetime_info(
@@ -341,7 +308,7 @@ def correct_datetime_info(
     """
     To correct the dates depending on the data
 
-    :param datetime_actual (str), actual datetime time
+    :param datetime_actual: (str), actual datetime time
     :param datetime_estimated: (str), estimated datetime time
     :param datetime_scheduled: (str), scheduled datetime time
     :param flight_status: (str), 'scheduled', 'cancelled', 'active', 'landed'
@@ -351,21 +318,11 @@ def correct_datetime_info(
     :returns: (tuple), (datetime_hour, real_datetime, actual_flight_status, real_delay)
     """
 
-    assert isinstance(
-        datetime_actual, str
-    ), "Wrong Type datetime_actual must be a str"
-    assert isinstance(
-        datetime_estimated, str
-    ), "Wrong Type datetime_estimated must be a str"
-    assert isinstance(
-        datetime_scheduled, str
-    ), "Wrong Type datetime_scheduled must be a str"
-    assert isinstance(
-        flight_status, str
-    ), "Wrong Type flight_status must be a str"
-    assert isinstance(
-        datetime_delay, int
-    ), "Wrong Type datetime_delay must be an int "
+    assert isinstance(datetime_actual, str), "Wrong Type datetime_actual must be a str"
+    assert isinstance(datetime_estimated, str), "Wrong Type datetime_estimated must be a str"
+    assert isinstance(datetime_scheduled, str), "Wrong Type datetime_scheduled must be a str"
+    assert isinstance(flight_status, str), "Wrong Type flight_status must be a str"
+    assert isinstance(datetime_delay, int), "Wrong Type datetime_delay must be an int "
     assert isinstance(text, str), "Wrong Type text must be a str"
 
     datetime_datetime_scheduled = TimeAttribute(datetime_scheduled)
@@ -376,12 +333,8 @@ def correct_datetime_info(
         if not is_blank(date_check):
             effective_date = TimeAttribute(date_check)
     if effective_date.datetime > datetime_datetime_scheduled.datetime:
-        datetime_delay = datetime_datetime_scheduled.get_mins_between(
-            effective_date.datetime
-        )
-    if (today_datetime > effective_date.datetime) & (
-        flight_status != "cancelled"
-    ):
+        datetime_delay = datetime_datetime_scheduled.get_mins_between(effective_date.datetime)
+    if (today_datetime > effective_date.datetime) & (flight_status != "cancelled"):
         flight_status = text
     return (
         f"{effective_date.hour}h",
@@ -406,10 +359,11 @@ def get_flight_key(flight_number: str, departure_scheduled: str) -> str:
 
 def post_tweet_with_pic(tweet_msg, picture_loc=None):
     """
-    to post a twitter with picture or not
-    Args:
-        tweet_msg (_type_): the tweet to be posted
-        picture_loc (_type_, optional): the path of the picture. Defaults to None.
+    To post a tweet with a picture or not.
+
+    :param tweet_msg: (str), The tweet message to be posted
+    :param picture_loc: (str), the path of the picture. Default is None
+    :returns: None
     """
 
     auth = tweepy.OAuthHandler(
